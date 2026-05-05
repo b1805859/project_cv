@@ -1,0 +1,7 @@
+"id","create_at","description","img_url","item_id","name","price","update_at","category_id"
+1,4/5/2026 12:02:26 AM,"Chu?t gaming Logitech G102","https://example.com/mouse-g102.png","ITEM001","Logitech G102",350000.00,4/5/2026 12:02:26 AM,2
+2,4/5/2026 12:02:26 AM,"Bàn phím co RGB","https://example.com/keyboard-rgb.png","ITEM002","Mechanical Keyboard RGB",1200000.00,4/5/2026 12:02:26 AM,2
+3,4/5/2026 12:02:26 AM,"Tai nghe gaming","https://example.com/headphone.png","ITEM003","Gaming Headset",750000.00,4/5/2026 12:02:26 AM,2
+4,4/5/2026 12:02:26 AM,"Màn hình 24 inch","https://example.com/monitor.png","ITEM004","Monitor 24 inch",3200000.00,4/5/2026 12:02:26 AM,2
+5,4/5/2026 12:02:26 AM,"Laptop Dell Inspiron","https://example.com/laptop.png","ITEM005","Dell Inspiron 15",15000000.00,4/5/2026 12:02:26 AM,2
+6,4/8/2026 11:40:51 PM.622,,,"0ec1f719-e989-4909-8497-8662b0894c8f","Logitech G102",350000.00,4/8/2026 11:40:51 PM.623,2

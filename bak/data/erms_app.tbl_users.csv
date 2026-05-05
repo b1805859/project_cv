@@ -1,0 +1,3 @@
+"id","create_at","email","name","password","role","update_at","user_id"
+2,4/4/2026 9:39:37 PM,"lehieuse@gmail.com","Bushan","$2a$10$vswV/fmKhKIz9XGskzzHD.W6f0YSnKL2xjp7a1TvGp/DQ7yoTjFsi","ROLE_ADMIN",4/4/2026 9:39:37 PM,
+3,4/4/2026 9:40:07 PM.352,"exmale@gmail.com","Bharath","$2a$10$lTmF87QAf8EuoCOPMgE0NeNSgBOc7p3uON8mT92/GvxQG3U6eQXHG","ROLE_USER",4/4/2026 9:40:07 PM.352,"0ac691b6-3435-446b-90d0-10a05cfb1b7d"

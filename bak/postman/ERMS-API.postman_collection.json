@@ -1,0 +1,393 @@
+{
+  "info": {
+    "_postman_id": "a4de19e5-0344-4b1f-ba1a-f24fb51a693c",
+    "name": "ERMS-API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45028373",
+    "_collection_link": "https://go.postman.co/collection/45028373-a4de19e5-0344-4b1f-ba1a-f24fb51a693c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Category",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Head phones\",\r\n    \"description\": \"all kinds of head phones available\",\r\n    \"bgColor\": \"#ffff\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/categories",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch list",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/categories/096ea882-a1f1-4df9-b25a-629999f12d64",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "categories",
+                "096ea882-a1f1-4df9-b25a-629999f12d64"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Encode",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"customerName\": \"abc\",\r\n    \"phoneNumber\": \"1234567891\",\r\n    \"cartItems\": [\r\n        {\r\n            \"imteId\": \"abc123\",\r\n            \"name\": \"HP headphones\",\r\n            \"price\": 250.00,\r\n            \"quantity\": 1\r\n        }\r\n    ],\r\n    \"subtotal\": 500.00,\r\n    \"grandToal\": 550.00,\r\n    \"paymentMethod\": \"CASH\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create razorpay order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 50.00,\r\n    \"currency\": \"INR\"\r\n\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/payments/create-order",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "payments",
+                "create-order"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWhpZXVzZUBnbWFpbC5jb20iLCJpYXQiOjE3NzY1MjQ5MjQsImV4cCI6MTc3NjUyNjcyNH0.qfyr00YziQYWqulGJRYmDo00Mx3JZVPqAiuD3JB7ZBM",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/orders/latest",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "orders",
+                "latest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/categories/096ea882-a1f1-4df9-b25a-629999f12d64",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "categories",
+                "096ea882-a1f1-4df9-b25a-629999f12d64"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Encode",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "Read",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"bushan@ecample.com\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Item",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Head phones\",\r\n    \"description\": \"all kinds of head phones available\",\r\n    \"bgColor\": \"#ffff\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/categories",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Copy",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/categories/096ea882-a1f1-4df9-b25a-629999f12d64",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "categories",
+                "096ea882-a1f1-4df9-b25a-629999f12d64"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "File",
+      "item": [
+        {
+          "name": "upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWhpZXVzZUBnbWFpbC5jb20iLCJpYXQiOjE3NzY2MDU5NDYsImV4cCI6MTc3NjYwNzc0Nn0.TycT1iasHvA6ml_IOW9_ynhGWo_dkUQGNlRMbmmk80Q",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "57f8ad48-19b4-4eac-8d41-08bf43787d05",
+                  "src": "/C:/Users/ADMIN/Pictures/Screenshots/Screenshot 2025-05-11 171031.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1.0/files/upload?file",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1.0",
+                "files",
+                "upload"
+              ],
+              "query": [
+                {
+                  "key": "file",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
