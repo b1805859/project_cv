@@ -1,0 +1,44 @@
+.order-success-container {
+  padding-top: 100px;
+
+  .success-hero-custom {
+    .title {
+      font-family: var(--font-head);
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .sub {
+      color: var(--muted2);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .order-id-box {
+      background: var(--card);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 10px;
+      display: inline-block;
+      padding: 8px 20px;
+      margin-bottom: 28px;
+      .label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .id-val {
+        font-family: var(--font-mono);
+        color: var(--accent);
+      }
+    }
+    .hint {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}

@@ -1,0 +1,137 @@
+.bundle-section {
+  padding: 48px 0;
+
+  .section-title {
+    margin-bottom: 24px;
+    h2 { font-family: var(--font-head); font-size: 22px; font-weight: 800; }
+  }
+
+  .bundles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 20px;
+  }
+
+  .bundle-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    &:hover { border-color: var(--accent); }
+
+    .bundle-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .bundle-info {
+        .combo-tag {
+          margin-bottom: 8px;
+          display: inline-flex;
+        }
+        .bundle-name {
+          font-family: var(--font-head);
+          font-size: 17px;
+          font-weight: 800;
+        }
+      }
+
+      .bundle-pricing {
+        text-align: right;
+        .current-price {
+          font-family: var(--font-head);
+          font-size: 20px;
+          font-weight: 800;
+          color: var(--accent);
+        }
+        .old-price {
+          font-size: 12px;
+          color: var(--muted);
+          text-decoration: line-through;
+        }
+      }
+    }
+
+    .bundle-desc {
+      font-size: 12px;
+      color: var(--muted2);
+      margin-bottom: 12px;
+    }
+
+    .bundle-products {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 14px;
+      background: var(--card2);
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+
+      .bundle-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .product-emoji {
+          font-size: 20px;
+          width: 32px;
+          height: 32px;
+          background: var(--card);
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .product-info-mini {
+          .name {
+            font-weight: 600;
+            font-size: 11px;
+            line-height: 1.2;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .price {
+            font-size: 10px;
+            color: var(--muted);
+          }
+        }
+      }
+
+      .plus-sign {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 14px;
+      }
+    }
+
+    .bundle-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+      .buy-btn {
+        flex: 1;
+      }
+      .savings-hint {
+        font-size: 11px;
+        color: var(--green);
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .bundle-section {
+    .bundles-grid { grid-template-columns: 1fr; }
+    .bundle-card-header { flex-direction: column; gap: 10px; .bundle-pricing { text-align: left; } }
+    .bundle-products { flex-wrap: wrap; }
+  }
+}

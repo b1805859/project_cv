@@ -1,0 +1,17 @@
+.theme-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  fontSize: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+}

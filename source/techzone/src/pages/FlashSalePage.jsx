@@ -1,0 +1,348 @@
+import { useContext } from "react";
+import { AppContext } from "../context/AppContext";
+import { formatPrice } from "../utils/helpers";
+import { CountdownDisplay } from "../components/CountdownDisplay/CountdownDisplay";
+import { useCountdown } from "../utils/helpers";
+import { FLASH_SALE } from "../data/mockData";
+
+export function FlashCountdownSmall() {
+  const { h, m, s } = useCountdown();
+  const pad = (n) => String(n).padStart(2, "0");
+  return (
+    <div className="flash-timer">
+      <div className="flash-unit">{pad(h)}</div>
+      <span className="flash-sep">:</span>
+      <div className="flash-unit">{pad(m)}</div>
+      <span className="flash-sep">:</span>
+      <div className="flash-unit">{pad(s)}</div>
+    </div>
+  );
+}
+
+export function FlashSalePage() {
+  const { dispatch } = useContext(AppContext);
+  const nav = (p, d) => {
+    dispatch({ type: "SET_PAGE", page: p, data: d });
+    window.scrollTo(0, 0);
+  };
+  return (
+    <div className="page">
+      {/* Header */}
+      <div
+        style={{
+          background:
+            "linear-gradient(135deg,rgba(255,107,53,.15),rgba(255,71,87,.1))",
+          borderBottom: "1px solid rgba(255,107,53,.2)",
+          padding: "32px 0",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 20,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: "var(--accent3)",
+                fontFamily: "var(--font-mono)",
+                marginBottom: 8,
+              }}
+            >
+              // FLASH SALE
+            </div>
+            <h1
+              style={{
+                fontFamily: "var(--font-head)",
+                fontSize: "clamp(24px,4vw,40px)",
+                fontWeight: 800,
+                letterSpacing: -1,
+              }}
+            >
+              ⚡ Giờ Vàng Giảm Giá
+            </h1>
+            <p style={{ fontSize: 14, color: "var(--muted2)", marginTop: 6 }}>
+              Số lượng có hạn — mỗi ngày chỉ có{" "}
+              <strong style={{ color: "var(--accent3)" }}>6 sản phẩm</strong>{" "}
+              flash sale
+            </p>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}
+            >
+              ⏰ Kết thúc sau
+            </div>
+            <CountdownDisplay />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1280, margin: "32px auto", padding: "0 24px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))",
+            gap: 20,
+          }}
+        >
+          {FLASH_SALE.map((item, idx) => {
+            const pct = Math.round((item.sold / item.stock) * 100);
+            const savedAmt = item.price - item.flashPrice;
+            const savedPct = Math.round((savedAmt / item.price) * 100);
+            return (
+              <div key={idx} className="flash-card">
+                {/* Badge */}
+                <div
+                  style={{ position: "absolute", top: 12, left: 12, zIndex: 2 }}
+                >
+                  <span className="promo-tag">🔥 -{savedPct}%</span>
+                </div>
+                {/* Image */}
+                <div
+                  style={{
+                    height: 200,
+                    background:
+                      "linear-gradient(135deg,var(--card2),var(--surface))",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 80,
+                    cursor: "pointer",
+                    position: "relative",
+                  }}
+                  onClick={() => nav("product", { productId: item.id })}
+                >
+                  {item.emoji}
+                  <div style={{ position: "absolute", bottom: 10, right: 10 }}>
+                    <FlashCountdownSmall />
+                  </div>
+                </div>
+                {/* Info */}
+                <div style={{ padding: 16 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--muted)",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {item.category}
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      marginBottom: 10,
+                      cursor: "pointer",
+                      lineHeight: 1.3,
+                    }}
+                    onClick={() => nav("product", { productId: item.id })}
+                  >
+                    {item.name}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: 10,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--font-head)",
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: "var(--accent3)",
+                      }}
+                    >
+                      {formatPrice(item.flashPrice)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        textDecoration: "line-through",
+                      }}
+                    >
+                      {formatPrice(item.price)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "var(--green)",
+                      }}
+                    >
+                      -{formatPrice(savedAmt)}
+                    </span>
+                  </div>
+                  {/* Sold bar */}
+                  <div style={{ marginBottom: 12 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: 11,
+                        color: "var(--muted)",
+                        marginBottom: 4,
+                      }}
+                    >
+                      <span>
+                        Đã bán:{" "}
+                        <strong
+                          style={{
+                            color:
+                              pct > 70
+                                ? "var(--red)"
+                                : pct > 40
+                                  ? "var(--yellow)"
+                                  : "var(--green)",
+                          }}
+                        >
+                          {item.sold}/{item.stock}
+                        </strong>
+                      </span>
+                      <span
+                        style={{
+                          color: pct > 80 ? "var(--red)" : "var(--muted)",
+                        }}
+                      >
+                        {pct > 80 ? "⚠️ Sắp hết" : "Còn hàng"}
+                      </span>
+                    </div>
+                    <div className="sold-bar">
+                      <div
+                        className="sold-fill"
+                        style={{
+                          width: `${pct}%`,
+                          background:
+                            pct > 70
+                              ? "linear-gradient(90deg,var(--red),#ff6b6b)"
+                              : pct > 40
+                                ? "linear-gradient(90deg,var(--yellow),#ffa500)"
+                                : "linear-gradient(90deg,var(--accent3),#ff3f00)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    style={{
+                      width: "100%",
+                      background:
+                        "linear-gradient(135deg,var(--accent3),#cc4400)",
+                      boxShadow: "0 4px 14px rgba(255,107,53,.3)",
+                    }}
+                    onClick={() => {
+                      dispatch({
+                        type: "ADD_TO_CART",
+                        product: { ...item, price: item.flashPrice },
+                      });
+                      dispatch({
+                        type: "ADD_TOAST",
+                        toast: {
+                          type: "success",
+                          title: "Flash deal! 🔥",
+                          msg: `${item.name} – ${formatPrice(item.flashPrice)}`,
+                        },
+                      });
+                    }}
+                  >
+                    ⚡ Mua ngay {formatPrice(item.flashPrice)}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Flash sale rules */}
+        <div
+          style={{
+            marginTop: 40,
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            borderRadius: 16,
+            padding: 24,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-head)",
+              fontWeight: 700,
+              marginBottom: 16,
+              fontSize: 16,
+            }}
+          >
+            📋 Điều lệ Flash Sale
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))",
+              gap: 16,
+            }}
+          >
+            {[
+              [
+                "⚡",
+                "Giá chỉ có trong ngày",
+                "Mỗi deal Flash Sale chỉ áp dụng trong khung giờ đếm ngược",
+              ],
+              [
+                "🛒",
+                "Mỗi khách 1 sản phẩm",
+                "Giới hạn 1 sản phẩm/đơn cho mỗi deal Flash Sale",
+              ],
+              [
+                "🚀",
+                "Giao hàng ưu tiên",
+                "Đơn Flash Sale được xử lý và giao hàng ưu tiên trong ngày",
+              ],
+              [
+                "💳",
+                "Giá cuối chính xác",
+                "Giá Flash Sale đã bao gồm tất cả giảm giá, không áp mã khác",
+              ],
+            ].map(([icon, title, desc]) => (
+              <div key={title} style={{ display: "flex", gap: 12 }}>
+                <span style={{ fontSize: 24, flexShrink: 0 }}>{icon}</span>
+                <div>
+                  <div
+                    style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}
+                  >
+                    {title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--muted)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

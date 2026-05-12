@@ -1,0 +1,210 @@
+.home-page-v2-container {
+  .hero-visual {
+    .hero-card-main {
+      .info-row {
+        margin-top: 16px;
+      }
+      .label-sub {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .product-title {
+        font-family: var(--font-head);
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      .price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 12px;
+        .price-val {
+          font-family: var(--font-head);
+          color: var(--accent);
+          font-size: 22px;
+          font-weight: 800;
+        }
+      }
+      .hero-floating-1 {
+        .stat-label {
+          font-size: 11px;
+          color: var(--muted);
+        }
+        .stat-val {
+          font-family: var(--font-head);
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--green);
+        }
+      }
+    }
+  }
+
+  .flash-sale-section {
+    padding: 0 0 80px;
+    .banner-wrapper {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 212, 255, 0.1),
+        rgba(123, 47, 247, 0.1)
+      );
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+
+      .glow-orb {
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 212, 255, 0.06),
+          transparent
+        );
+        pointer-events: none;
+      }
+
+      .banner-content {
+        .tag {
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          color: var(--accent);
+          font-family: var(--font-mono);
+          margin-bottom: 10px;
+        }
+        .title {
+          font-family: var(--font-head);
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: -0.5px;
+          margin-bottom: 8px;
+        }
+        .desc {
+          font-size: 14px;
+          color: var(--muted2);
+          margin-bottom: 0;
+        }
+      }
+
+      .banner-actions {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        .timer-box {
+          .label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+
+  .trending-section {
+    padding-top: 60px;
+    .grid-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    .col-title {
+      font-family: var(--font-head);
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+    .trending-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      transition: 0.2s;
+      &:hover {
+        background: var(--card2);
+      }
+      .trending-rank {
+        font-family: var(--font-head);
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--muted);
+        min-width: 32px;
+        &.top {
+          color: var(--accent);
+        }
+      }
+      .trending-name {
+        font-size: 13px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .new-product-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+
+    &:hover {
+      border-color: rgba(0, 212, 255, 0.25);
+    }
+
+    .img-box {
+      width: 54px;
+      height: 54px;
+      background: var(--card2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .info-pane {
+      flex: 1;
+      .name {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+    }
+
+    .price-pane {
+      text-align: right;
+      .price-val {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .old-price {
+        font-size: 11px;
+        color: var(--muted);
+        text-decoration: line-through;
+        text-align: right;
+      }
+    }
+  }
+}

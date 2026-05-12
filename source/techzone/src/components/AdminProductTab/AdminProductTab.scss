@@ -1,0 +1,96 @@
+.admin-product-tab {
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+
+    .search-group {
+      flex: 1;
+      min-width: 200px;
+    }
+  }
+
+  .product-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .emoji {
+      font-size: 24px;
+    }
+
+    .name {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .brand {
+      font-size: 11px;
+      color: var(--muted);
+    }
+  }
+
+  .price-cell {
+    .current-price {
+      font-family: var(--font-head);
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .old-price {
+      font-size: 10px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+  }
+
+  .stock-cell {
+    font-weight: 600;
+    font-size: 13px;
+
+    &.low {
+      color: var(--red);
+    }
+
+    &.medium {
+      color: var(--yellow);
+    }
+
+    &.high {
+      color: var(--green);
+    }
+  }
+
+  .sold-cell {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .rating-cell {
+    .star {
+      color: #ffd32a;
+    }
+
+    .val {
+      font-size: 12px;
+    }
+  }
+
+  .tags-cell {
+    display: flex;
+    gap: 4px;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 6px;
+  }
+}

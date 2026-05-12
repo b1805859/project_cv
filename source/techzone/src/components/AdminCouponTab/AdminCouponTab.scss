@@ -1,0 +1,121 @@
+.admin-coupon-tab {
+  .modal-custom {
+    max-width: 480px;
+  }
+
+  .form-row-custom {
+    margin-bottom: 14px;
+  }
+
+  .form-group-no-margin {
+    margin-bottom: 0;
+  }
+
+  .code-input {
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card-custom {
+    padding: 16px;
+
+    .stat-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+  }
+
+  .coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+
+  .coupon-card-item {
+    &.inactive {
+      opacity: 0.6;
+    }
+
+    .coupon-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+
+      .copy-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .coupon-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+
+        .active-badge {
+          font-size: 9px;
+        }
+
+        .toggle-btn {
+          padding: 3px 8px;
+          font-size: 11px;
+        }
+      }
+    }
+
+    .coupon-details {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--muted2);
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .coupon-usage {
+      margin-bottom: 8px;
+
+      .usage-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+    }
+  }
+}

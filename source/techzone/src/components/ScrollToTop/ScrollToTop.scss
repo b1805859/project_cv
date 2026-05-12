@@ -1,0 +1,24 @@
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 90px;
+  left: 24px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted2);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 70;
+  box-shadow: var(--shadow-lg);
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}

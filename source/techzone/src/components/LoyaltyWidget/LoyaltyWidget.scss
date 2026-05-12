@@ -1,0 +1,73 @@
+.loyalty-widget {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  
+  &.loyalty-bar {
+    margin-top: 12px;
+  }
+
+  .loyalty-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+
+    .icon {
+      font-size: 20px;
+    }
+
+    .info-pane {
+      flex: 1;
+      .title {
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
+        strong {
+          color: #a78bfa;
+        }
+      }
+    }
+
+    .pts-pane {
+      text-align: right;
+      .pts-val {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        color: #a78bfa;
+        font-size: 16px;
+      }
+      .hint {
+        font-size: 10px;
+        color: var(--muted);
+      }
+    }
+  }
+
+  .loyalty-progress-container {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #7b2ff7, #a78bfa);
+      transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    .next-reward { color: #a78bfa; font-weight: 600; }
+  }
+}
