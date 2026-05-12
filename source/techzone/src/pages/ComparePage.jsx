@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { PRODUCTS } from "../data/mockData";
 import { AppContext } from "../context/AppContext";
 import { formatPrice, stars } from "../utils/helpers";
+import "./ComparePage.scss";
 
 export function CompareBar() {
   const { state, dispatch } = useContext(AppContext);
@@ -112,7 +113,7 @@ export function ComparePage() {
   ];
 
   return (
-    <div className="page">
+    <div className="page compare-page">
       <div className="page-header">
         <div className="page-header-inner">
           <h1 className="page-title">⚖️ So sánh sản phẩm</h1>

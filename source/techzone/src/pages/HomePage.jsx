@@ -4,6 +4,7 @@ import { AppContext } from "../context/AppContext";
 import { formatPrice, stars } from "../utils/helpers";
 import { ProductCard } from "../components/ProductCard/ProductCard";
 import { Footer } from "../components/Footer/Footer";
+import "./HomePage.scss";
 
 export function HomePage() {
   const { dispatch } = useContext(AppContext);
@@ -15,7 +16,7 @@ export function HomePage() {
   const trending = [...PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 5);
 
   return (
-    <div className="page">
+    <div className="page home-page">
       {/* HERO */}
       <section className="hero">
         <div className="hero-bg" />

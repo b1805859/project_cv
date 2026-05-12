@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { PRODUCTS } from "../data/mockData";
 import { AppContext } from "../context/AppContext";
 import { formatPrice } from "../utils/helpers";
+import "./NotFoundPage.scss";
 
 export function NotFoundPage() {
   const { dispatch } = useContext(AppContext);
@@ -10,7 +11,7 @@ export function NotFoundPage() {
     window.scrollTo(0, 0);
   };
   return (
-    <div className="page">
+    <div className="page not-found-page">
       <div className="not-found">
         <div className="not-found-code">404</div>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>

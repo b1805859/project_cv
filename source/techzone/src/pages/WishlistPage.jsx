@@ -3,6 +3,7 @@ import { PRODUCTS } from "../data/mockData";
 import { AppContext } from "../context/AppContext";
 import { formatPrice, discount, stars } from "../utils/helpers";
 import { Footer } from "../components/Footer/Footer";
+import "./WishlistPage.scss";
 
 export function WishlistPage() {
   const { state, dispatch } = useContext(AppContext);
@@ -35,7 +36,7 @@ export function WishlistPage() {
     );
 
   return (
-    <div className="page">
+    <div className="page wishlist-page">
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">

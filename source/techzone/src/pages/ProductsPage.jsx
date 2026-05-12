@@ -3,6 +3,7 @@ import { CATEGORIES, PRODUCTS } from "../data/mockData";
 import { AppContext } from "../context/AppContext";
 import { formatPrice, stars } from "../utils/helpers";
 import { ProductCard } from "../components/ProductCard/ProductCard";
+import "./ProductsPage.scss";
 
 export function ProductsPage() {
   const { state, dispatch } = useContext(AppContext);
@@ -84,7 +85,7 @@ export function ProductsPage() {
     (minRating ? 1 : 0);
 
   return (
-    <div className="page">
+    <div className="page products-page">
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">

@@ -1,5 +1,42 @@
 .mobile-bottom-nav-container {
-  // mobile-nav classes already in index.css, I'll add specific overrides
+  &.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+    padding: 8px 0 12px;
+  }
+
+  .mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 12px;
+    transition: 0.15s;
+
+    &.active,
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  .mobile-nav-icon {
+    font-size: 20px;
+  }
+
   .icon-wrapper {
     position: relative;
     display: inline-block;
@@ -19,5 +56,15 @@
       align-items: center;
       justify-content: center;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav-container.mobile-nav {
+    display: block;
+  }
+
+  body {
+    padding-bottom: 70px;
   }
 }

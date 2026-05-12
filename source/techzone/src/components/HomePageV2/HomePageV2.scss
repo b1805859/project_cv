@@ -1,48 +1,268 @@
 .home-page-v2-container {
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 0 0 60px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse 80% 60% at 60% 40%,
+        rgba(0, 212, 255, 0.06) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 20% 80%,
+        rgba(123, 47, 247, 0.08) 0%,
+        transparent 60%
+      );
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+
+    &::before {
+      content: "\25CF";
+      font-size: 8px;
+      animation: homeV2HeroBlink 1.5s infinite;
+    }
+  }
+
+  .hero-title {
+    font-family: var(--font-head);
+    font-size: clamp(36px, 4.5vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+
+    span {
+      background: linear-gradient(135deg, var(--accent) 0%, #7b2ff7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted2);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 480px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-num {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
   .hero-visual {
-    .hero-card-main {
-      .info-row {
-        margin-top: 16px;
+    position: relative;
+  }
+
+  .hero-card-main {
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(0, 212, 255, 0.08) 0%,
+        transparent 70%
+      ),
+      linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(0, 212, 255, 0.05);
+    position: relative;
+
+    .info-row {
+      margin-top: 16px;
+    }
+
+    .label-sub {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .product-title {
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+
+      .price-val {
+        font-family: var(--font-head);
+        color: var(--accent);
+        font-size: 22px;
+        font-weight: 800;
       }
-      .label-sub {
-        font-size: 13px;
+    }
+
+    .hero-floating-1 {
+      .stat-label {
+        font-size: 11px;
         color: var(--muted);
       }
-      .product-title {
+
+      .stat-val {
         font-family: var(--font-head);
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
-        margin-top: 4px;
-      }
-      .price-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 12px;
-        .price-val {
-          font-family: var(--font-head);
-          color: var(--accent);
-          font-size: 22px;
-          font-weight: 800;
-        }
-      }
-      .hero-floating-1 {
-        .stat-label {
-          font-size: 11px;
-          color: var(--muted);
-        }
-        .stat-val {
-          font-family: var(--font-head);
-          font-size: 16px;
-          font-weight: 700;
-          color: var(--green);
-        }
+        color: var(--green);
       }
     }
   }
 
+  .hero-product-img {
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 212, 255, 0.05),
+      rgba(123, 47, 247, 0.05)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 100px;
+  }
+
+  .hero-floating {
+    position: absolute;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
+    font-size: 12px;
+  }
+
+  .hero-floating-1 {
+    top: -20px;
+    right: -20px;
+  }
+
+  .hero-floating-2 {
+    bottom: -15px;
+    left: -25px;
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .cat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+
+    &:hover {
+      border-color: var(--accent);
+      background: var(--card2);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+  }
+
+  .cat-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .cat-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted2);
+  }
+
+  .cat-count {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
   .flash-sale-section {
     padding: 0 0 80px;
+
     .banner-wrapper {
       background: linear-gradient(
         135deg,
@@ -85,6 +305,7 @@
           font-family: var(--font-mono);
           margin-bottom: 10px;
         }
+
         .title {
           font-family: var(--font-head);
           font-size: 28px;
@@ -92,6 +313,7 @@
           letter-spacing: -0.5px;
           margin-bottom: 8px;
         }
+
         .desc {
           font-size: 14px;
           color: var(--muted2);
@@ -104,6 +326,7 @@
         align-items: center;
         gap: 24px;
         flex-wrap: wrap;
+
         .timer-box {
           .label {
             font-size: 11px;
@@ -118,16 +341,19 @@
 
   .trending-section {
     padding-top: 60px;
+
     .grid-split {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 28px;
     }
+
     .col-title {
       font-family: var(--font-head);
       margin-bottom: 20px;
       font-size: 22px;
     }
+
     .trending-item {
       display: flex;
       align-items: center;
@@ -135,19 +361,23 @@
       padding: 12px;
       border-bottom: 1px solid var(--border);
       transition: 0.2s;
+
       &:hover {
         background: var(--card2);
       }
+
       .trending-rank {
         font-family: var(--font-head);
         font-size: 20px;
         font-weight: 800;
         color: var(--muted);
         min-width: 32px;
+
         &.top {
           color: var(--accent);
         }
       }
+
       .trending-name {
         font-size: 13px;
         font-weight: 600;
@@ -184,6 +414,7 @@
 
     .info-pane {
       flex: 1;
+
       .name {
         font-weight: 600;
         font-size: 13px;
@@ -193,17 +424,49 @@
 
     .price-pane {
       text-align: right;
+
       .price-val {
         font-family: var(--font-head);
         color: var(--accent);
         font-weight: 700;
         font-size: 15px;
       }
+
       .old-price {
         font-size: 11px;
         color: var(--muted);
         text-decoration: line-through;
         text-align: right;
+      }
+    }
+  }
+}
+
+@keyframes homeV2HeroBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page-v2-container {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .hero-visual {
+      display: none;
+    }
+
+    .trending-section {
+      .grid-split {
+        grid-template-columns: 1fr;
       }
     }
   }

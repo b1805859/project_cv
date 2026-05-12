@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { formatPrice, formatDate } from "../utils/helpers";
+import "./ProfilePage.scss";
 
 export function ProfilePage() {
   const { state, dispatch } = useContext(AppContext);
@@ -48,7 +49,7 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="page">
+    <div className="page profile-page">
       <div className="page-header">
         <div className="page-header-inner">
           <h1 className="page-title">👤 Hồ sơ cá nhân</h1>

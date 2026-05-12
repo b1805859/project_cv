@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { formatPrice } from "../utils/helpers";
 import { LoyaltyWidget } from "../components/LoyaltyWidget/LoyaltyWidget";
+import "./CartPage.scss";
 
 export function CartPage() {
   const { state, dispatch } = useContext(AppContext);
@@ -106,7 +107,7 @@ export function CartPage() {
     );
 
   return (
-    <div className="page">
+    <div className="page cart-page">
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">

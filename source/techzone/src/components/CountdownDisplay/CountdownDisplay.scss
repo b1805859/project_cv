@@ -1,4 +1,40 @@
 .countdown-display-wrapper {
-  // Uses existing countdown-box classes from index.css
-  // Adding any specific overrides here if needed
+  &.countdown-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .countdown-unit {
+    background: var(--card2);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    text-align: center;
+    min-width: 52px;
+  }
+
+  .countdown-num {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .countdown-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  .countdown-sep {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0.6;
+  }
 }

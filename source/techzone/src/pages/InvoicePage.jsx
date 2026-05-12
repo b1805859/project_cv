@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { PRODUCTS } from "../data/mockData";
 import { AppContext } from "../context/AppContext";
 import { formatPrice, formatDate } from "../utils/helpers";
+import "./InvoicePage.scss";
 
 export function InvoicePage() {
   const { state, dispatch } = useContext(AppContext);
@@ -31,7 +32,7 @@ export function InvoicePage() {
   const total = subtotal + shipping;
 
   return (
-    <div className="page">
+    <div className="page invoice-page">
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">

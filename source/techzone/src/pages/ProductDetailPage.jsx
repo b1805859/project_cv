@@ -5,6 +5,7 @@ import { formatPrice, formatDate, stars } from "../utils/helpers";
 import { ProductCard } from '../components/ProductCard/ProductCard';
 import { Footer } from "../components/Footer/Footer";
 import { RecentlyViewedStrip } from "../components/RecentlyViewedStrip/RecentlyViewedStrip";
+import "./ProductDetailPage.scss";
 
 export function ProductDetailPage() {
   const { state, dispatch } = useContext(AppContext);
@@ -100,7 +101,7 @@ export function ProductDetailPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page product-detail-page">
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">

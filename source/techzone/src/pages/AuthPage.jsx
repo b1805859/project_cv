@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useContext } from "react";
 import { AppContext } from "../context/AppContext";
+import "./AuthPage.scss";
 
 export function AuthPage() {
   const { dispatch } = useContext(AppContext);

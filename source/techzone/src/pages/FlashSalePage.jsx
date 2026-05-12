@@ -4,6 +4,7 @@ import { formatPrice } from "../utils/helpers";
 import { CountdownDisplay } from "../components/CountdownDisplay/CountdownDisplay";
 import { useCountdown } from "../utils/helpers";
 import { FLASH_SALE } from "../data/mockData";
+import "./FlashSalePage.scss";
 
 export function FlashCountdownSmall() {
   const { h, m, s } = useCountdown();
@@ -26,7 +27,7 @@ export function FlashSalePage() {
     window.scrollTo(0, 0);
   };
   return (
-    <div className="page">
+    <div className="page flash-sale-page">
       {/* Header */}
       <div
         style={{
