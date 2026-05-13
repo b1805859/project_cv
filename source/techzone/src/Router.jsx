@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, createContext, useContext, useReducer } from 'react';
+import { useContext } from 'react';
 import { AppContext } from './context/AppContext';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
@@ -15,6 +15,9 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboard } from "./components/AdminDashboard/AdminDashboard";
 import { CheckoutPage } from "./components/CheckoutPage/CheckoutPage";
 import { FlashSalePage } from './pages/FlashSalePage';
+import { BlogPage } from './pages/BlogPage';
+import { BlogDetailPage } from './pages/BlogDetailPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export function Router() {
@@ -33,6 +36,9 @@ export function Router() {
     case 'compare':       return <ComparePage/>;
     case 'login':         return <AuthPage/>;
     case 'admin':         return <AdminDashboard/>;
+    case 'blog':          return <BlogPage/>;
+    case 'blog-detail':   return <BlogDetailPage/>;
+    case 'notifications': return <NotificationsPage/>;
     case 'about':         return <AboutPage/>;
     case 'profile':       return <ProfilePage/>;
     default:              return <NotFoundPage/>;

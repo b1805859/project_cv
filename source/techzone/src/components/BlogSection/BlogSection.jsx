@@ -8,6 +8,11 @@ export function BlogSection() {
   const [activeTag, setActiveTag] = useState('Tất cả');
   const tags = ['Tất cả','Review','Gaming','Audio','Accessories','Storage','Monitor'];
   const filtered = activeTag === 'Tất cả' ? BLOG_POSTS : BLOG_POSTS.filter(p => p.tag === activeTag);
+  
+  const nav = (p, d) => { 
+    dispatch({ type: 'SET_PAGE', page: p, data: d }); 
+    window.scrollTo(0, 0); 
+  };
 
   return (
     <section className="section blog-section">
@@ -29,7 +34,7 @@ export function BlogSection() {
 
         <div className="posts-grid">
           {filtered.slice(0,3).map(post=>(
-            <div key={post.id} className="blog-card" onClick={()=>dispatch({type:'ADD_TOAST',toast:{type:'info',title:post.title,msg:'Chức năng blog đang phát triển'}})}>
+            <div key={post.id} className="blog-card" onClick={()=>nav('blog-detail', {postId:post.id})}>
               <div className="blog-img">{post.emoji}</div>
               <div className="blog-body">
                 <div className="blog-tag">{post.tag}</div>

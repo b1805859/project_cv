@@ -9,6 +9,11 @@ export function NotificationCenter() {
   const [notifs, setNotifs] = useState(NOTIFS_INIT);
   const ref = useRef();
   const unread = notifs.filter((n) => n.unread).length;
+  
+  const nav = (p) => {
+    dispatch({ type: 'SET_PAGE', page: p });
+    window.scrollTo(0, 0);
+  };
 
   useEffect(() => {
     const h = (e) => {
@@ -68,10 +73,7 @@ export function NotificationCenter() {
           <div
             className="view-all-footer"
             onClick={() => {
-              dispatch({
-                type: "ADD_TOAST",
-                toast: { type: "info", title: "Xem tất cả thông báo" },
-              });
+              nav('notifications');
               setOpen(false);
             }}
           >

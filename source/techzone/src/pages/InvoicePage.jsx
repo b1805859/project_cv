@@ -29,7 +29,7 @@ export function InvoicePage() {
   const shipping = subtotal > 5000000 ? 0 : 30000;
   const discount_val =
     order.payment === "MoMo" ? Math.round(subtotal * 0.01) : 0;
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - discount_val;
 
   return (
     <div className="page invoice-page">

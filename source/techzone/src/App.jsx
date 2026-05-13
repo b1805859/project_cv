@@ -30,7 +30,7 @@ export function App() {
         dispatch({ type: "ADD_RECENTLY_VIEWED", id: p.id });
       }
     }
-  }, [state.page, state.pageData?.productId]);
+  }, [state.page, state.pageData?.productId, state.adminProducts]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

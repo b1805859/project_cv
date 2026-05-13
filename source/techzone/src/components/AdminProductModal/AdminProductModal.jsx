@@ -7,7 +7,6 @@ export function AdminProductModal({ product, onClose }) {
   const { dispatch } = useContext(AppContext);
   const isEdit = !!product;
   const [form, setForm] = useState(() => product || {
-    // eslint-disable-next-line react-hooks/purity
     id: Date.now(), name:'', category:'Laptop', catId:1, price:'', oldPrice:'',
     rating:4.5, reviews:0, emoji:'📦', sold:0, stock:10, brand:'',
     specs:{}, description:'', isNew:false, isHot:false

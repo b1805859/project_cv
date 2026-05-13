@@ -28,6 +28,6 @@ export function useCountdown(targetHour = 23, targetMin = 59, targetSec = 59) {
     calc();
     const t = setInterval(calc, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [targetHour, targetMin, targetSec]);
   return time;
 }
