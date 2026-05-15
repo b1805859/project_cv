@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useContext } from "react";
+import { createPortal } from 'react-dom';
 import { AppContext } from "../../context/AppContext";
 import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import { LiveSearch } from "../LiveSearch/LiveSearch";
@@ -19,13 +20,48 @@ export function NavbarV2() {
   }, []);
 
   const cartCount = state.cart.reduce((s, i) => s + i.qty, 0);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerRef = useRef();
   const nav = (page, data) => {
     dispatch({ type: "SET_PAGE", page, data });
     window.scrollTo(0, 0);
+    setDrawerOpen(false);
   };
   const isAdmin = state.user?.role === "ADMIN";
 
+  const drawerItems = [
+    { key: "wishlist", icon: "❤️", label: "Yêu thích", action: () => nav("wishlist") },
+    { key: "cart", icon: "🛒", label: `Giỏ hàng (${cartCount})`, action: () => nav("cart") },
+    { key: "notifications", icon: "🔔", label: "Thông báo", action: () => nav("notifications") },
+    { key: "chat", icon: "💬", label: "Tin nhắn", action: () => { dispatch({ type: "TOGGLE_CHAT" }); setDrawerOpen(false); } },
+  ];
+
+  const authItem = state.user
+    ? { key: "profile", icon: "👤", label: "Hồ sơ", action: () => nav("profile") }
+    : { key: "login", icon: "🔑", label: "Đăng nhập", action: () => nav("login") };
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (drawerRef.current && !drawerRef.current.contains(e.target)) setDrawerOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    if (drawerOpen) document.body.classList.add('drawer-open');
+    else document.body.classList.remove('drawer-open');
+    return () => {
+      document.body.style.overflow = "";
+      document.body.classList.remove('drawer-open');
+    };
+  }, [drawerOpen]);
+
+  const portalRoot = typeof window !== 'undefined' ? document.getElementById('portal-root') : null;
+
   return (
+    <>
     <nav className="navbar-v2">
       <div className="nav-inner">
         <div className="nav-logo" onClick={() => nav("home")}>
@@ -59,6 +95,14 @@ export function NavbarV2() {
 
         {/* Live Search */}
         <LiveSearch />
+
+        <button
+          className="btn btn-icon btn-secondary nav-toggler"
+          onClick={() => setDrawerOpen(!drawerOpen)}
+          aria-label="Open mobile menu"
+        >
+          ☰
+        </button>
 
         <div className="nav-actions">
           <ThemeToggle />
@@ -182,6 +226,38 @@ export function NavbarV2() {
           )}
         </div>
       </div>
+
+      {portalRoot && drawerOpen && createPortal(
+        <div className="mobile-drawer-overlay" onClick={() => setDrawerOpen(false)}>
+          <div ref={drawerRef} className="mobile-drawer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="drawer-header">
+              <span>Menu</span>
+              <button className="drawer-close" onClick={() => setDrawerOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="drawer-items">
+              <ul className="drawer-list">
+                {drawerItems.map((item) => (
+                  <li key={item.key} className="drawer-list-item">
+                    <button className={`drawer-item ${state.page === item.key ? 'active' : ''}`} onClick={() => { item.action && item.action(); setDrawerOpen(false); }}>
+                      <span className="drawer-icon" aria-hidden>{item.icon}</span>
+                      <span className="drawer-label">{item.label}</span>
+                    </button>
+                  </li>
+                ))}
+                <li className="drawer-list-item">
+                  <button className={`drawer-item drawer-item-strong ${state.page === authItem.key ? 'active' : ''}`} onClick={() => { authItem.action && authItem.action(); setDrawerOpen(false); }}>
+                    <span className="drawer-icon" aria-hidden>{authItem.icon}</span>
+                    <span className="drawer-label">{authItem.label}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>, portalRoot
+      )}
     </nav>
+    </>
   );
 }

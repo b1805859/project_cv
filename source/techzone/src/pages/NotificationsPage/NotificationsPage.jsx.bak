@@ -1,0 +1,191 @@
+﻿import { useState, useContext } from 'react';
+import { AppContext } from '../../context/AppContext';
+import { NOTIFS_INIT } from '../../data/mockData';
+import "./NotificationsPage.scss";
+
+export function NotificationsPage() {
+  const { dispatch } = useContext(AppContext);
+  const [notifs, setNotifs] = useState(NOTIFS_INIT);
+  const [filterType, setFilterType] = useState('all');
+  const [showClearAllPopup, setShowClearAllPopup] = useState(false);
+  
+  const nav = (p) => { 
+    dispatch({ type: 'SET_PAGE', page: p }); 
+    window.scrollTo(0, 0); 
+  };
+
+  const filtered = filterType === 'all' 
+    ? notifs 
+    : filterType === 'unread'
+    ? notifs.filter(n => n.unread)
+    : notifs.filter(n => !n.unread);
+
+  const unreadCount = notifs.filter(n => n.unread).length;
+
+  function markAsRead(id) {
+    setNotifs(ns => ns.map(n => n.id === id ? { ...n, unread: false } : n));
+  }
+
+  function markAllAsRead() {
+    setNotifs(ns => ns.map(n => ({ ...n, unread: false })));
+  }
+
+  function deleteNotification(id) {
+    setNotifs(ns => ns.filter(n => n.id !== id));
+  }
+
+  function clearAll() {
+    setShowClearAllPopup(true);
+  }
+
+  function confirmClearAll() {
+    setNotifs([]);
+    setShowClearAllPopup(false);
+  }
+
+  function cancelClearAll() {
+    setShowClearAllPopup(false);
+  }
+
+  return (
+    <div className="page notifications-page">
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="breadcrumb">
+            <span onClick={() => nav('home')} style={{cursor:'pointer',color:'var(--accent)'}}>Trang chá»§</span>
+            <span className="breadcrumb-sep">/</span>
+            <span>ThÃ´ng bÃ¡o</span>
+          </div>
+          <h1 className="page-title">ðŸ”” Trung tÃ¢m thÃ´ng bÃ¡o</h1>
+        </div>
+      </div>
+
+      <div className="page-content">
+        <div className="notifications-container">
+          {/* Sidebar */}
+          <aside className="notif-sidebar">
+            <div className="notif-stats">
+              <div className="stat-item">
+                <div className="stat-number">{notifs.length}</div>
+                <div className="stat-label">Tá»•ng thÃ´ng bÃ¡o</div>
+              </div>
+              <div className="stat-item highlight">
+                <div className="stat-number">{unreadCount}</div>
+                <div className="stat-label">ChÆ°a Ä‘á»c</div>
+              </div>
+            </div>
+
+            <div className="notif-filters">
+              <button 
+                className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterType('all')}
+              >
+                ðŸ“‹ Táº¥t cáº£ ({notifs.length})
+              </button>
+              <button 
+                className={`filter-btn ${filterType === 'unread' ? 'active' : ''}`}
+                onClick={() => setFilterType('unread')}
+              >
+                â­ ChÆ°a Ä‘á»c ({unreadCount})
+              </button>
+              <button 
+                className={`filter-btn ${filterType === 'read' ? 'active' : ''}`}
+                onClick={() => setFilterType('read')}
+              >
+                âœ… ÄÃ£ Ä‘á»c ({notifs.filter(n => !n.unread).length})
+              </button>
+            </div>
+
+            <div className="notif-actions">
+              <button className="action-btn" onClick={markAllAsRead} disabled={unreadCount === 0}>
+                âœ“ ÄÃ¡nh dáº¥u táº¥t cáº£ Ä‘Ã£ Ä‘á»c
+              </button>
+              <button className="action-btn delete-btn" onClick={clearAll} disabled={notifs.length === 0}>
+                ðŸ—‘ï¸ XÃ³a táº¥t cáº£
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="notif-main">
+            {filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">ðŸ“­</div>
+                <h2 className="empty-title">
+                  {filterType === 'all' ? 'KhÃ´ng cÃ³ thÃ´ng bÃ¡o' : `KhÃ´ng cÃ³ thÃ´ng bÃ¡o ${filterType === 'unread' ? 'chÆ°a Ä‘á»c' : 'Ä‘Ã£ Ä‘á»c'}`}
+                </h2>
+                <p className="empty-desc">Báº¡n sáº½ nháº­n Ä‘Æ°á»£c thÃ´ng bÃ¡o vá» Ä‘Æ¡n hÃ ng, khuyáº¿n mÃ£i vÃ  hoáº¡t Ä‘á»™ng tÃ i khoáº£n.</p>
+                <button className="btn btn-primary" onClick={() => nav('home')}>â† Quay láº¡i trang chá»§</button>
+              </div>
+            ) : (
+              <div className="notif-list">
+                {filtered.map(n => (
+                  <div key={n.id} className={`notif-item-full ${n.unread ? 'unread' : 'read'}`}>
+                    <div className="notif-item-icon" style={{ background: n.iconBg }}>
+                      {n.icon}
+                    </div>
+                    
+                    <div className="notif-item-content">
+                      <div className="notif-item-title">{n.title}</div>
+                      <div className="notif-item-sub">{n.sub}</div>
+                      <div className="notif-item-time">{n.time}</div>
+                    </div>
+
+                    <div className="notif-item-actions">
+                      {n.unread && (
+                        <button 
+                          className="action-icon" 
+                          title="ÄÃ¡nh dáº¥u Ä‘Ã£ Ä‘á»c"
+                          onClick={() => markAsRead(n.id)}
+                        >
+                          âœ“
+                        </button>
+                      )}
+                      <button 
+                        className="action-icon delete" 
+                        title="XÃ³a thÃ´ng bÃ¡o"
+                        onClick={() => deleteNotification(n.id)}
+                      >
+                        Ã—
+                      </button>
+                    </div>
+
+                    {n.unread && <div className="unread-indicator" />}
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* Clear All Confirmation Popup */}
+      {showClearAllPopup && (
+        <div className="clear-all-popup-overlay">
+          <div className="clear-all-popup">
+            <div className="popup-icon">ðŸ—‘ï¸</div>
+            <h3 className="popup-title">XÃ³a táº¥t cáº£ thÃ´ng bÃ¡o</h3>
+            <p className="popup-message">
+              Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a táº¥t cáº£ thÃ´ng bÃ¡o? HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.
+            </p>
+            <div className="popup-actions">
+              <button 
+                className="btn btn-secondary" 
+                onClick={cancelClearAll}
+              >
+                Há»§y
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={confirmClearAll}
+              >
+                XÃ³a táº¥t cáº£
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

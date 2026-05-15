@@ -1,0 +1,535 @@
+﻿import { useState, useContext } from "react";
+import { PRODUCTS } from "../../data/mockData";
+import { AppContext } from "../../context/AppContext";
+import { formatPrice, formatDate, stars } from "../../utils/helpers";
+import { ProductCard } from '../../components/ProductCard/ProductCard';
+import { Footer } from "../../components/Footer/Footer";
+import { RecentlyViewedStrip } from "../../components/RecentlyViewedStrip/RecentlyViewedStrip";
+import "./ProductDetailPage.scss";
+
+export function ProductDetailPage() {
+  const { state, dispatch } = useContext(AppContext);
+  const productId = state.pageData?.productId;
+  const product =
+    (state.adminProducts || PRODUCTS).find((p) => p.id === productId) ||
+    (state.adminProducts || PRODUCTS)[0];
+  const [qty, setQty] = useState(1);
+  const [tab, setTab] = useState("desc");
+  const [comment, setComment] = useState("");
+  const [userRating, setUserRating] = useState(5);
+  const [comments, setComments] = useState([
+    {
+      id: 1,
+      user: "Nguyá»…n Minh Khoa",
+      rating: 5,
+      date: "2024-01-10",
+      text: "Sáº£n pháº©m tuyá»‡t vá»i, Ä‘Ãºng nhÆ° mÃ´ táº£! Giao hÃ ng nhanh, Ä‘Ã³ng gÃ³i cáº©n tháº­n. Ráº¥t hÃ i lÃ²ng vá»›i cháº¥t lÆ°á»£ng.",
+      replies: [],
+    },
+    {
+      id: 2,
+      user: "Tráº§n Thá»‹ Lan",
+      rating: 4,
+      date: "2024-01-12",
+      text: "Cháº¥t lÆ°á»£ng tá»‘t, hiá»‡u suáº¥t á»•n Ä‘á»‹nh. Chá»‰ tiáº¿c lÃ  khÃ´ng cÃ³ phá»¥ kiá»‡n Ä‘i kÃ¨m nhiá»u hÆ¡n.",
+      replies: [
+        {
+          id: 21,
+          user: "TechZone Support",
+          date: "2024-01-12",
+          text: "Cáº£m Æ¡n báº¡n Ä‘Ã£ tin tÆ°á»Ÿng! Náº¿u cáº§n thÃªm phá»¥ kiá»‡n, báº¡n tham kháº£o danh má»¥c phá»¥ kiá»‡n nhÃ©.",
+        },
+      ],
+    },
+  ]);
+
+  const related = (state.adminProducts || PRODUCTS)
+    .filter((p) => p.catId === product.catId && p.id !== product.id)
+    .slice(0, 4);
+  const nav = (page, data) => {
+    dispatch({ type: "SET_PAGE", page, data });
+    window.scrollTo(0, 0);
+  };
+
+  function addToCart() {
+    dispatch({ type: "ADD_TO_CART", product, qty });
+    dispatch({
+      type: "TRACK_ACTIVITY",
+      productId: product.id,
+      catId: product.catId,
+      actType: "CART",
+    });
+    dispatch({
+      type: "ADD_TOAST",
+      toast: {
+        type: "success",
+        title: "ÄÃ£ thÃªm vÃ o giá» hÃ ng",
+        msg: `${qty}x ${product.name}`,
+      },
+    });
+  }
+
+  function addComment() {
+    if (!comment.trim()) return;
+    if (!state.user) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          type: "warning",
+          title: "Cáº§n Ä‘Äƒng nháº­p",
+          msg: "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ bÃ¬nh luáº­n",
+        },
+      });
+      return;
+    }
+    setComments((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        user: state.user.name,
+        rating: userRating,
+        date: new Date().toISOString().slice(0, 10),
+        text: comment,
+        replies: [],
+      },
+    ]);
+    setComment("");
+    dispatch({
+      type: "ADD_TOAST",
+      toast: { type: "success", title: "BÃ¬nh luáº­n Ä‘Ã£ Ä‘Æ°á»£c Ä‘Äƒng!" },
+    });
+  }
+
+  return (
+    <div className="page product-detail-page">
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="breadcrumb">
+            <span
+              onClick={() => nav("home")}
+              style={{ cursor: "pointer", color: "var(--accent)" }}
+            >
+              Trang chá»§
+            </span>
+            <span className="breadcrumb-sep">/</span>
+            <span
+              onClick={() => nav("products")}
+              style={{ cursor: "pointer", color: "var(--accent)" }}
+            >
+              Sáº£n pháº©m
+            </span>
+            <span className="breadcrumb-sep">/</span>
+            <span>{product.name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="product-detail-layout">
+        {/* GALLERY */}
+        <div className="product-gallery">
+          <div className="gallery-main">
+            <span style={{ fontSize: 120 }}>{product.emoji}</span>
+            <div style={{ position: "absolute", top: 12, right: 12 }}>
+              {product.isNew && <span className="badge badge-cyan">NEW</span>}
+              {product.isHot && (
+                <span className="badge badge-orange">ðŸ”¥ HOT</span>
+              )}
+            </div>
+          </div>
+          <div className="gallery-thumbs">
+            {[product.emoji, "ðŸ“¦", "ðŸ·ï¸", "âœ¨"].map((e, i) => (
+              <div
+                key={i}
+                className={`gallery-thumb${i === 0 ? " active" : ""}`}
+              >
+                {e}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* INFO */}
+        <div className="product-detail-info">
+          <div>
+            <span className="badge badge-cyan" style={{ marginBottom: 10 }}>
+              {product.category}
+            </span>
+            <h1 className="product-detail-title">{product.name}</h1>
+            <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 6 }}>
+              ThÆ°Æ¡ng hiá»‡u:{" "}
+              <strong style={{ color: "var(--text)" }}>{product.brand}</strong>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span className="stars" style={{ fontSize: 18 }}>
+              {stars(product.rating)}
+            </span>
+            <span style={{ fontSize: 13, color: "var(--muted2)" }}>
+              {product.rating}/5 ({product.reviews} Ä‘Ã¡nh giÃ¡)
+            </span>
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>
+              ÄÃ£ bÃ¡n:{" "}
+              <strong style={{ color: "var(--green)" }}>
+                {product.sold.toLocaleString()}
+              </strong>
+            </span>
+          </div>
+
+          <div className="product-detail-price">
+            <span className="detail-price-main">
+              {formatPrice(product.price)}
+            </span>
+            {product.oldPrice && (
+              <>
+                <span className="detail-price-old">
+                  {formatPrice(product.oldPrice)}
+                </span>
+                <span className="badge badge-red">
+                  Tiáº¿t kiá»‡m {formatPrice(product.oldPrice - product.price)}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* SPECS */}
+          <div className="detail-specs">
+            {Object.entries(product.specs).map(([k, v]) => (
+              <div key={k} className="spec-row">
+                <span className="spec-key">{k}</span>
+                <span className="spec-val">{v}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div className="stock-badge">
+              <span className="stock-dot" />
+              CÃ²n {product.stock} sáº£n pháº©m
+            </div>
+            <div className="badge badge-green">âœ“ Báº£o hÃ nh chÃ­nh hÃ£ng</div>
+            <div className="badge badge-cyan">ðŸšš Miá»…n phÃ­ váº­n chuyá»ƒn</div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{ fontSize: 14, color: "var(--muted)" }}>
+              Sá»‘ lÆ°á»£ng:
+            </span>
+            <div className="qty-selector">
+              <button
+                className="qty-btn"
+                onClick={() => setQty(Math.max(1, qty - 1))}
+              >
+                âˆ’
+              </button>
+              <span className="qty-val">{qty}</span>
+              <button
+                className="qty-btn"
+                onClick={() => setQty(Math.min(product.stock, qty + 1))}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <button
+              className="btn btn-primary btn-lg"
+              style={{ flex: 1 }}
+              onClick={addToCart}
+            >
+              ðŸ›’ ThÃªm vÃ o giá» hÃ ng
+            </button>
+            <button
+              className="btn btn-success btn-lg"
+              style={{ flex: 1 }}
+              onClick={() => {
+                addToCart();
+                nav("cart");
+              }}
+            >
+              âš¡ Mua ngay
+            </button>
+            <button
+              className="btn btn-icon btn-secondary"
+              onClick={() =>
+                dispatch({ type: "TOGGLE_WISHLIST", id: product.id })
+              }
+            >
+              {state.wishlist.includes(product.id) ? "â¤ï¸" : "ðŸ¤"}
+            </button>
+          </div>
+
+          <div
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              padding: 16,
+              display: "flex",
+              gap: 20,
+            }}
+          >
+            {[
+              ["ðŸ›¡ï¸", "Báº£o hÃ nh 12â€“24 thÃ¡ng"],
+              ["ðŸ”„", "Äá»•i tráº£ 7 ngÃ y"],
+              ["ðŸ“¦", "Giao hÃ ng 2â€“5 ngÃ y"],
+              ["ðŸ’³", "Há»— trá»£ tráº£ gÃ³p 0%"],
+            ].map(([icon, text]) => (
+              <div
+                key={text}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  color: "var(--muted2)",
+                }}
+              >
+                <span>{icon}</span>
+                {text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{ maxWidth: 1280, margin: "32px auto", padding: "0 24px" }}>
+        <div className="tabs">
+          {[
+            ["desc", "MÃ´ táº£"],
+            ["specs", "ThÃ´ng sá»‘"],
+            ["reviews", "ÄÃ¡nh giÃ¡ (" + comments.length + ")"],
+          ].map(([t, l]) => (
+            <div
+              key={t}
+              className={`tab${tab === t ? " active" : ""}`}
+              onClick={() => setTab(t)}
+            >
+              {l}
+            </div>
+          ))}
+        </div>
+
+        {tab === "desc" && (
+          <div
+            style={{ color: "var(--muted2)", lineHeight: 1.8, maxWidth: 700 }}
+          >
+            {product.description}
+          </div>
+        )}
+        {tab === "specs" && (
+          <div className="detail-specs" style={{ maxWidth: 600 }}>
+            {Object.entries(product.specs).map(([k, v]) => (
+              <div key={k} className="spec-row">
+                <span className="spec-key">{k}</span>
+                <span className="spec-val">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab === "reviews" && (
+          <div>
+            <div
+              style={{
+                display: "flex",
+                gap: 32,
+                marginBottom: 28,
+                alignItems: "center",
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-head)",
+                    fontSize: 48,
+                    fontWeight: 800,
+                    color: "var(--accent)",
+                  }}
+                >
+                  {product.rating}
+                </div>
+                <div
+                  className="stars"
+                  style={{ fontSize: 20, margin: "4px 0" }}
+                >
+                  {stars(product.rating)}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                  {product.reviews} Ä‘Ã¡nh giÃ¡
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                {[5, 4, 3, 2, 1].map((r) => (
+                  <div
+                    key={r}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted)",
+                        minWidth: 12,
+                      }}
+                    >
+                      {r}
+                    </span>
+                    <span style={{ color: "#ffd32a", fontSize: 11 }}>â˜…</span>
+                    <div className="progress" style={{ flex: 1 }}>
+                      <div
+                        className="progress-bar"
+                        style={{
+                          width: `${r === 5 ? 70 : r === 4 ? 20 : r === 3 ? 7 : 2}%`,
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "var(--muted)",
+                        minWidth: 24,
+                      }}
+                    >
+                      {r === 5 ? 70 : r === 4 ? 20 : r === 3 ? 7 : 2}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {comments.map((c) => (
+              <div key={c.id} className="comment-card">
+                <div className="comment-header">
+                  <div className="comment-avatar">{c.user[0]}</div>
+                  <div className="comment-meta">
+                    <div className="comment-user">{c.user}</div>
+                    <div className="comment-date">
+                      {formatDate(c.date)} Â·{" "}
+                      <span className="stars" style={{ fontSize: 11 }}>
+                        {"â˜…".repeat(c.rating) + "â˜†".repeat(5 - c.rating)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="comment-body">{c.text}</div>
+                {c.replies.map((r) => (
+                  <div key={r.id} className="reply-indent">
+                    <div
+                      className="comment-card"
+                      style={{ background: "var(--card2)" }}
+                    >
+                      <div className="comment-header">
+                        <div
+                          className="comment-avatar"
+                          style={{
+                            background:
+                              "linear-gradient(135deg,var(--accent),var(--accent2))",
+                            fontSize: 10,
+                          }}
+                        >
+                          {r.user[0]}
+                        </div>
+                        <div className="comment-meta">
+                          <div className="comment-user">
+                            {r.user}{" "}
+                            <span
+                              className="badge badge-cyan"
+                              style={{ fontSize: 9, padding: "1px 6px" }}
+                            >
+                              Staff
+                            </span>
+                          </div>
+                          <div className="comment-date">
+                            {formatDate(r.date)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="comment-body">{r.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+
+            <div className="comment-input-area">
+              <div
+                style={{
+                  fontFamily: "var(--font-head)",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  marginBottom: 14,
+                }}
+              >
+                Viáº¿t Ä‘Ã¡nh giÃ¡
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 14,
+                }}
+              >
+                <span style={{ fontSize: 13, color: "var(--muted)" }}>
+                  ÄÃ¡nh giÃ¡:
+                </span>
+                {[1, 2, 3, 4, 5].map((r) => (
+                  <span
+                    key={r}
+                    style={{
+                      fontSize: 24,
+                      cursor: "pointer",
+                      color: r <= userRating ? "#ffd32a" : "var(--muted)",
+                    }}
+                    onClick={() => setUserRating(r)}
+                  >
+                    â˜…
+                  </span>
+                ))}
+              </div>
+              <textarea
+                className="comment-textarea"
+                placeholder="Chia sáº» tráº£i nghiá»‡m cá»§a báº¡n vá» sáº£n pháº©m..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <button
+                className="btn btn-primary"
+                style={{ marginTop: 10 }}
+                onClick={addComment}
+              >
+                Gá»­i Ä‘Ã¡nh giÃ¡
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* RELATED */}
+      {related.length > 0 && (
+        <section className="section" style={{ background: "var(--surface)" }}>
+          <div className="section-inner">
+            <div className="section-label">// Gá»£i Ã½</div>
+            <h2 className="section-title" style={{ marginBottom: 24 }}>
+              Sáº£n pháº©m <span>liÃªn quan</span>
+            </h2>
+            <div className="products-grid">
+              {related.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      <RecentlyViewedStrip />
+      <Footer />
+    </div>
+  );
+}
+

@@ -1,0 +1,55 @@
+.flash-sale-page {
+  .flash-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    transition: 0.25s;
+
+    &:hover {
+      border-color: rgba(255, 107, 53, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .flash-timer {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .flash-unit {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .flash-sep {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    font-size: 11px;
+  }
+
+  .sold-bar {
+    height: 6px;
+    background: var(--card2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .sold-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), #ff3f00);
+    transition: 0.3s;
+  }
+}

@@ -1,0 +1,500 @@
+﻿import { useState, useContext } from "react";
+import { AppContext } from "../../context/AppContext";
+import { formatPrice } from "../../utils/helpers";
+import { LoyaltyWidget } from "../../components/LoyaltyWidget/LoyaltyWidget";
+import "./CartPage.scss";
+
+export function CartPage() {
+  const { state, dispatch } = useContext(AppContext);
+  const nav = (page, data) => {
+    dispatch({ type: "SET_PAGE", page, data });
+    window.scrollTo(0, 0);
+  };
+  const [promoInput, setPromoInput] = useState("");
+
+  const subtotal = state.cart.reduce((s, i) => s + i.product.price * i.qty, 0);
+  const baseShipping = subtotal > 5000000 ? 0 : 30000;
+
+  // Calculate promo discount
+  let promoDiscount = 0;
+  let freeShip = false;
+  if (state.promoCode) {
+    const promo = (state.coupons || []).find((c) => c.code === state.promoCode);
+    if (promo && promo.active) {
+      if (promo.type === "percent")
+        promoDiscount = Math.round((subtotal * promo.value) / 100);
+      else if (promo.type === "fixed") promoDiscount = promo.value;
+      else if (promo.type === "ship") freeShip = true;
+    }
+  }
+  const shipping = freeShip ? 0 : baseShipping;
+  const total = subtotal - promoDiscount + shipping;
+
+  function applyPromo() {
+    const code = promoInput.trim().toUpperCase();
+    const promo = (state.coupons || []).find((c) => c.code === code);
+    if (!promo || !promo.active) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          type: "error",
+          title: "MÃ£ khÃ´ng há»£p lá»‡",
+          msg: "Vui lÃ²ng kiá»ƒm tra láº¡i mÃ£ khuyáº¿n mÃ£i",
+        },
+      });
+      return;
+    }
+    if (subtotal < promo.min) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          type: "warning",
+          title: "ChÆ°a Ä‘á»§ Ä‘iá»u kiá»‡n",
+          msg: `ÄÆ¡n tá»‘i thiá»ƒu ${formatPrice(promo.min)}`,
+        },
+      });
+      return;
+    }
+    dispatch({ type: "SET_PROMO", code });
+    dispatch({
+      type: "ADD_TOAST",
+      toast: {
+        type: "success",
+        title: `Ãp dá»¥ng thÃ nh cÃ´ng!`,
+        msg: promo.label,
+      },
+    });
+    setPromoInput("");
+  }
+
+  if (state.cart.length === 0)
+    return (
+      <div className="page">
+        <div className="page-header">
+          <div className="page-header-inner">
+            <h1 className="page-title">ðŸ›’ Giá» hÃ ng</h1>
+          </div>
+        </div>
+        <div
+          style={{
+            maxWidth: 600,
+            margin: "60px auto",
+            padding: "0 24px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 80, marginBottom: 20 }}>ðŸ›’</div>
+          <h2
+            style={{
+              fontFamily: "var(--font-head)",
+              fontSize: 24,
+              marginBottom: 10,
+            }}
+          >
+            Giá» hÃ ng trá»‘ng
+          </h2>
+          <p style={{ color: "var(--muted)", marginBottom: 28 }}>
+            HÃ£y thÃªm sáº£n pháº©m vÃ o giá» hÃ ng nhÃ©!
+          </p>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => nav("products")}
+          >
+            ðŸ›ï¸ Mua sáº¯m ngay
+          </button>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="page cart-page">
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="breadcrumb">
+            <span
+              onClick={() => nav("home")}
+              style={{ cursor: "pointer", color: "var(--accent)" }}
+            >
+              Trang chá»§
+            </span>
+            <span className="breadcrumb-sep">/</span>
+            <span>Giá» hÃ ng</span>
+          </div>
+          <h1 className="page-title">
+            ðŸ›’ Giá» hÃ ng ({state.cart.reduce((s, i) => s + i.qty, 0)} sáº£n pháº©m)
+          </h1>
+        </div>
+      </div>
+      <div className="cart-layout">
+        <div>
+          <div className="cart-items">
+            {state.cart.map((item) => (
+              <div key={item.product.id} className="cart-item">
+                <div
+                  className="cart-item-img"
+                  onClick={() => nav("product", { productId: item.product.id })}
+                  style={{ cursor: "pointer" }}
+                >
+                  {item.product.emoji}
+                </div>
+                <div className="cart-item-info">
+                  <div
+                    className="cart-item-name"
+                    onClick={() =>
+                      nav("product", { productId: item.product.id })
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
+                    {item.product.name}
+                  </div>
+                  <div className="cart-item-cat">
+                    {item.product.category} Â· {item.product.brand}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      marginTop: 8,
+                    }}
+                  >
+                    <div className="qty-selector">
+                      <button
+                        className="qty-btn"
+                        style={{ width: 28, height: 28, fontSize: 14 }}
+                        onClick={() =>
+                          dispatch({
+                            type: "UPDATE_CART_QTY",
+                            id: item.product.id,
+                            qty: item.qty - 1,
+                          })
+                        }
+                      >
+                        âˆ’
+                      </button>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-head)",
+                          fontWeight: 700,
+                          minWidth: 24,
+                          textAlign: "center",
+                        }}
+                      >
+                        {item.qty}
+                      </span>
+                      <button
+                        className="qty-btn"
+                        style={{ width: 28, height: 28, fontSize: 14 }}
+                        onClick={() =>
+                          dispatch({
+                            type: "UPDATE_CART_QTY",
+                            id: item.product.id,
+                            qty: item.qty + 1,
+                          })
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => {
+                        dispatch({
+                          type: "REMOVE_FROM_CART",
+                          id: item.product.id,
+                        });
+                        dispatch({
+                          type: "ADD_TOAST",
+                          toast: {
+                            type: "info",
+                            title: "ÄÃ£ xÃ³a khá»i giá» hÃ ng",
+                          },
+                        });
+                      }}
+                    >
+                      ðŸ—‘ï¸ XÃ³a
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => {
+                        dispatch({
+                          type: "TOGGLE_WISHLIST",
+                          id: item.product.id,
+                        });
+                        dispatch({
+                          type: "ADD_TOAST",
+                          toast: {
+                            type: "info",
+                            title: "ÄÃ£ lÆ°u vÃ o yÃªu thÃ­ch",
+                          },
+                        });
+                      }}
+                    >
+                      {state.wishlist.includes(item.product.id) ? "â¤ï¸" : "ðŸ¤"}{" "}
+                      YÃªu thÃ­ch
+                    </button>
+                  </div>
+                </div>
+                <div className="cart-item-price">
+                  {formatPrice(item.product.price * item.qty)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <button className="btn btn-ghost" onClick={() => nav("products")}>
+              â† Tiáº¿p tá»¥c mua sáº¯m
+            </button>
+            <button
+              className="btn btn-danger"
+              onClick={() => {
+                dispatch({ type: "CLEAR_CART" });
+                dispatch({
+                  type: "ADD_TOAST",
+                  toast: { type: "info", title: "ÄÃ£ xÃ³a táº¥t cáº£ sáº£n pháº©m" },
+                });
+              }}
+            >
+              ðŸ—‘ï¸ XÃ³a táº¥t cáº£
+            </button>
+          </div>
+
+          {/* PROMO HINTS */}
+          <div
+            style={{
+              marginTop: 20,
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              padding: 16,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "var(--muted)",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                marginBottom: 10,
+              }}
+            >
+              ðŸ’¡ MÃ£ khuyáº¿n mÃ£i gá»£i Ã½
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {(state.coupons || [])
+                .filter((c) => c.active)
+                .map((promo) => (
+                  <div
+                    key={promo.code}
+                    style={{
+                      padding: "5px 12px",
+                      background: "rgba(0,212,255,.08)",
+                      border: "1px solid rgba(0,212,255,.2)",
+                      borderRadius: 6,
+                      fontSize: 12,
+                      cursor: "pointer",
+                      transition: ".15s",
+                    }}
+                    onClick={() => setPromoInput(promo.code)}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "rgba(0,212,255,.15)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "rgba(0,212,255,.08)")
+                    }
+                  >
+                    <strong
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        color: "var(--accent)",
+                      }}
+                    >
+                      {promo.code}
+                    </strong>
+                    <span style={{ color: "var(--muted)", marginLeft: 6 }}>
+                      {promo.label}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="cart-summary">
+          <div className="summary-title">TÃ³m táº¯t Ä‘Æ¡n hÃ ng</div>
+          <div className="summary-row">
+            <span>
+              Táº¡m tÃ­nh ({state.cart.reduce((s, i) => s + i.qty, 0)} sáº£n pháº©m)
+            </span>
+            <span>{formatPrice(subtotal)}</span>
+          </div>
+          <div className="summary-row">
+            <span>PhÃ­ váº­n chuyá»ƒn</span>
+            <span
+              style={{ color: shipping === 0 ? "var(--green)" : "inherit" }}
+            >
+              {shipping === 0 ? "Miá»…n phÃ­ ðŸŽ‰" : formatPrice(shipping)}
+            </span>
+          </div>
+
+          {/* PROMO CODE INPUT */}
+          <div
+            style={{
+              margin: "14px 0",
+              background: "var(--card2)",
+              borderRadius: 10,
+              padding: 12,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--muted)",
+                marginBottom: 8,
+              }}
+            >
+              ðŸŽŸï¸ MÃ£ khuyáº¿n mÃ£i
+            </div>
+            {state.promoCode ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    background: "rgba(0,230,118,.1)",
+                    border: "1px solid rgba(0,230,118,.3)",
+                    borderRadius: 6,
+                    padding: "7px 12px",
+                    fontSize: 13,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--green)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {state.promoCode}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--muted)",
+                      marginLeft: 8,
+                      fontSize: 11,
+                    }}
+                  >
+                    {
+                      (state.coupons || []).find(
+                        (c) => c.code === state.promoCode,
+                      )?.label
+                    }
+                  </span>
+                </div>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => {
+                    dispatch({ type: "SET_PROMO", code: null });
+                    dispatch({
+                      type: "ADD_TOAST",
+                      toast: { type: "info", title: "ÄÃ£ xÃ³a mÃ£ giáº£m giÃ¡" },
+                    });
+                  }}
+                >
+                  âœ•
+                </button>
+              </div>
+            ) : (
+              <div className="promo-input" style={{ margin: 0 }}>
+                <input
+                  className="input"
+                  placeholder="Nháº­p mÃ£..."
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                  style={{ fontSize: 13, fontFamily: "var(--font-mono)" }}
+                />
+                <button className="btn btn-secondary" onClick={applyPromo}>
+                  Ãp dá»¥ng
+                </button>
+              </div>
+            )}
+          </div>
+
+          {promoDiscount > 0 && (
+            <div className="summary-row" style={{ color: "var(--green)" }}>
+              <span>Giáº£m giÃ¡ ({state.promoCode})</span>
+              <span>-{formatPrice(promoDiscount)}</span>
+            </div>
+          )}
+          {freeShip && (
+            <div className="summary-row" style={{ color: "var(--green)" }}>
+              <span>Miá»…n váº­n chuyá»ƒn</span>
+              <span>-{formatPrice(baseShipping)}</span>
+            </div>
+          )}
+
+          <div
+            style={{ height: 1, background: "var(--border)", margin: "8px 0" }}
+          />
+          <div className="summary-total">
+            <span>Tá»•ng cá»™ng</span>
+            <span>{formatPrice(Math.max(0, total))}</span>
+          </div>
+          {promoDiscount > 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 11,
+                color: "var(--green)",
+                marginTop: 6,
+              }}
+            >
+              ðŸŽ‰ Báº¡n tiáº¿t kiá»‡m{" "}
+              {formatPrice(promoDiscount + (freeShip ? baseShipping : 0))}!
+            </div>
+          )}
+          <LoyaltyWidget total={Math.max(0, total)} />
+
+          <button
+            className="btn btn-primary btn-lg w-full"
+            style={{ marginTop: 16, width: "100%" }}
+            onClick={() => nav("checkout")}
+          >
+            Tiáº¿n hÃ nh thanh toÃ¡n â†’
+          </button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 10,
+              marginTop: 14,
+              flexWrap: "wrap",
+            }}
+          >
+            {["ðŸ”’ SSL", "ðŸ“¦ Äá»•i tráº£ 7 ngÃ y", "ðŸ›¡ï¸ ChÃ­nh hÃ£ng"].map((t) => (
+              <span
+                key={t}
+                style={{
+                  fontSize: 10,
+                  color: "var(--muted)",
+                  textAlign: "center",
+                }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

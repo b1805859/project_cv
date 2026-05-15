@@ -1,0 +1,32 @@
+.not-found-page {
+  .not-found {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    background: radial-gradient(
+      ellipse 60% 50% at 50% 50%,
+      rgba(0, 212, 255, 0.04),
+      transparent
+    );
+  }
+
+  .not-found-code {
+    font-family: var(--font-head);
+    font-size: clamp(80px, 15vw, 160px);
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 212, 255, 0.15),
+      rgba(123, 47, 247, 0.15)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    user-select: none;
+  }
+}

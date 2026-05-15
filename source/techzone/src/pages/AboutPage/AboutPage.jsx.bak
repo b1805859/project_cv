@@ -1,0 +1,219 @@
+﻿import { useContext } from "react";
+import { AppContext } from "../../context/AppContext";
+import { Footer } from "../../components/Footer/Footer";
+
+export function AboutPage() {
+  const { dispatch } = useContext(AppContext);
+  const nav = (p) => {
+    dispatch({ type: "SET_PAGE", page: p });
+    window.scrollTo(0, 0);
+  };
+  const team = [
+    {
+      name: "Nguyá»…n VÄƒn CEO",
+      role: "Founder & CEO",
+      emoji: "ðŸ‘¨â€ðŸ’¼",
+      desc: "10 nÄƒm kinh nghiá»‡m bÃ¡n láº» Ä‘iá»‡n tá»­",
+    },
+    {
+      name: "Tráº§n Thá»‹ CTO",
+      role: "CTO",
+      emoji: "ðŸ‘©â€ðŸ’»",
+      desc: "Ex-Google Engineer, kiáº¿n trÃºc há»‡ thá»‘ng",
+    },
+    {
+      name: "LÃª VÄƒn CMO",
+      role: "CMO",
+      emoji: "ðŸ‘¨â€ðŸŽ¨",
+      desc: "ChuyÃªn gia marketing sá»‘ & TMÄT",
+    },
+    {
+      name: "Pháº¡m Thá»‹ CS",
+      role: "Head of CS",
+      emoji: "ðŸ‘©â€ðŸŽ¯",
+      desc: "Äáº£m báº£o 99% khÃ¡ch hÃ ng hÃ i lÃ²ng",
+    },
+  ];
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-inner">
+          <div className="breadcrumb">
+            <span
+              onClick={() => nav("home")}
+              style={{ cursor: "pointer", color: "var(--accent)" }}
+            >
+              Trang chá»§
+            </span>
+            <span className="breadcrumb-sep">/</span>
+            <span>Vá» chÃºng tÃ´i</span>
+          </div>
+          <h1 className="page-title">â„¹ï¸ Vá» TechZone</h1>
+        </div>
+      </div>
+      <div style={{ maxWidth: 960, margin: "40px auto", padding: "0 24px" }}>
+        <div
+          style={{
+            background:
+              "linear-gradient(135deg,rgba(0,212,255,.08),rgba(123,47,247,.08))",
+            border: "1px solid rgba(0,212,255,.15)",
+            borderRadius: 20,
+            padding: "48px 40px",
+            marginBottom: 28,
+            textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -40,
+              right: -40,
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle,rgba(0,212,255,.06),transparent)",
+              pointerEvents: "none",
+            }}
+          />
+          <div style={{ fontSize: 60, marginBottom: 14 }}>ðŸš€</div>
+          <h2
+            style={{
+              fontFamily: "var(--font-head)",
+              fontSize: 30,
+              fontWeight: 800,
+              marginBottom: 12,
+            }}
+          >
+            Sá»© má»‡nh cá»§a <span style={{ color: "var(--accent)" }}>TechZone</span>
+          </h2>
+          <p
+            style={{
+              color: "var(--muted2)",
+              lineHeight: 1.9,
+              maxWidth: 580,
+              margin: "0 auto",
+              fontSize: 15,
+            }}
+          >
+            ThÃ nh láº­p nÄƒm 2020, TechZone mang Ä‘áº¿n cÃ´ng nghá»‡ chÃ­nh hÃ£ng vá»›i giÃ¡
+            tá»‘t nháº¥t. ChÃºng tÃ´i phá»¥c vá»¥ hÆ¡n{" "}
+            <strong style={{ color: "var(--accent)" }}>
+              500,000 khÃ¡ch hÃ ng
+            </strong>{" "}
+            trÃªn toÃ n quá»‘c vá»›i cam káº¿t 100% chÃ­nh hÃ£ng vÃ  há»— trá»£ 24/7.
+          </p>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4,1fr)",
+            gap: 14,
+            marginBottom: 28,
+          }}
+        >
+          {[
+            ["ðŸ†", "Uy tÃ­n #1", "thÆ°Æ¡ng hiá»‡u Ä‘iá»‡n tá»­ tin dÃ¹ng nháº¥t 2023"],
+            ["ðŸŒ", "63 tá»‰nh", "giao hÃ ng toÃ n quá»‘c 2â€“5 ngÃ y"],
+            ["ðŸ”’", "100%", "sáº£n pháº©m chÃ­nh hÃ£ng cÃ³ tem BH"],
+            ["â­", "4.9/5", "Ä‘Ã¡nh giÃ¡ TB tá»« 500K khÃ¡ch"],
+          ].map(([icon, num, sub]) => (
+            <div
+              key={num}
+              className="card"
+              style={{ padding: 18, textAlign: "center" }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{icon}</div>
+              <div
+                style={{
+                  fontFamily: "var(--font-head)",
+                  fontSize: 22,
+                  fontWeight: 800,
+                  color: "var(--accent)",
+                }}
+              >
+                {num}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--muted)",
+                  marginTop: 4,
+                  lineHeight: 1.4,
+                }}
+              >
+                {sub}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginBottom: 28 }}>
+          <div className="section-label" style={{ marginBottom: 6 }}>
+            // Äá»™i ngÅ©
+          </div>
+          <h3
+            style={{
+              fontFamily: "var(--font-head)",
+              fontSize: 20,
+              fontWeight: 800,
+              marginBottom: 18,
+            }}
+          >
+            Nhá»¯ng ngÆ°á»i{" "}
+            <span style={{ color: "var(--accent)" }}>xÃ¢y dá»±ng TechZone</span>
+          </h3>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))",
+              gap: 14,
+            }}
+          >
+            {team.map((t) => (
+              <div
+                key={t.name}
+                className="card"
+                style={{ padding: 20, textAlign: "center" }}
+              >
+                <div style={{ fontSize: 44, marginBottom: 8 }}>{t.emoji}</div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-head)",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    marginBottom: 4,
+                  }}
+                >
+                  {t.name}
+                </div>
+                <span
+                  className="badge badge-cyan"
+                  style={{ fontSize: 9, marginBottom: 8 }}
+                >
+                  {t.role}
+                </span>
+                <div
+                  style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}
+                >
+                  {t.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ textAlign: "center", padding: "24px 0" }}>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => nav("products")}
+          >
+            ðŸ›ï¸ KhÃ¡m phÃ¡ sáº£n pháº©m ngay
+          </button>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
