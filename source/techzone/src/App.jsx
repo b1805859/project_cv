@@ -34,7 +34,7 @@ export function App() {
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
-      {state.page !== "profile" && <NavbarV2 />}
+      <NavbarV2 />
       <Router />
       <CompareBar />
       <ChatWidget />

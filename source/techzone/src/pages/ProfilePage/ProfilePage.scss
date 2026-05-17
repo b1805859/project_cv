@@ -34,8 +34,7 @@
     .profile-summary-top { display: none; }
   }
 
-  .profile-layout { display:flex; }
-  .profile-main { flex:1; margin-left: 280px; transition: margin 200ms ease; width: 100%; }
+  .profile-main { width: 100%; transition: opacity 200ms ease; }
 
   .profile-summary-card {
     padding: 28px;

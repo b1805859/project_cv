@@ -1,13 +1,16 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { CATEGORIES, PRODUCTS } from "../../data/mockData";
 import { AppContext } from "../../context/AppContext";
 import { formatPrice, formatDate } from "../../utils/helpers";
 import { AdminProductTab } from "../AdminProductTab/AdminProductTab";
 import { AdminCouponTab } from "../AdminCouponTab/AdminCouponTab";
+import { AdminCreateTab } from "../AdminCreateTab/AdminCreateTab";
 import "./AdminDashboard.scss";
 
 export function AdminDashboard() {
   const { state, dispatch } = useContext(AppContext);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
 
   if (!state.user || state.user.role !== "ADMIN")
     return (
@@ -22,6 +25,7 @@ export function AdminDashboard() {
 
   const tabs = [
     { id: "dashboard", icon: "📊", label: "Dashboard" },
+    { id: "add_new", icon: "✨", label: "Tạo mới" },
     { id: "products", icon: "📦", label: "Sản phẩm" },
     { id: "orders", icon: "🛒", label: "Đơn hàng" },
     { id: "users", icon: "👥", label: "Người dùng" },
@@ -72,19 +76,16 @@ export function AdminDashboard() {
             // Hệ thống
           </div>
           {[
-            ["⚙️", "Cài đặt"],
-            ["🔒", "Phân quyền"],
-            ["📋", "Logs hệ thống"],
-            ["💾", "Backup DB"],
-          ].map(([icon, label]) => (
+            ["⚙️", "Cài đặt", "settings"],
+            ["🔒", "Phân quyền", "permissions"],
+            ["📋", "Logs hệ thống", "logs"],
+            ["💾", "Backup DB", "backup"],
+          ].map(([icon, label, id]) => (
             <div
               key={label}
-              className="admin-nav-item"
+              className={`admin-nav-item${state.adminTab === id ? " active" : ""}`}
               onClick={() =>
-                dispatch({
-                  type: "ADD_TOAST",
-                  toast: { type: "info", title: label },
-                })
+                dispatch({ type: "SET_ADMIN_TAB", tab: id })
               }
             >
               <span>{icon}</span>
@@ -325,6 +326,9 @@ export function AdminDashboard() {
             </>
           )}
 
+          {/* ── ADD NEW (CREATE) ── */}
+          {state.adminTab === "add_new" && <AdminCreateTab />}
+
           {/* ── PRODUCTS ── */}
           {state.adminTab === "products" && <AdminProductTab />}
 
@@ -368,8 +372,8 @@ export function AdminDashboard() {
                           <td><span className="badge badge-purple">{o.payment}</span></td>
                           <td><span className={`badge ${cfg.cls}`}>{cfg.label}</span></td>
                           <td>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              {nextStatus[o.status] && (
+                            <div style={{ display: "flex", gap: 6, justifyContent: "flex-start" }}>
+                              {nextStatus[o.status] ? (
                                 <button
                                   className="btn btn-secondary btn-sm"
                                   onClick={() => {
@@ -379,6 +383,8 @@ export function AdminDashboard() {
                                 >
                                   Tiếp theo →
                                 </button>
+                              ) : (
+                                <div style={{ width: 94 }}></div>
                               )}
                               <button
                                 className="btn btn-ghost btn-sm"
@@ -402,7 +408,7 @@ export function AdminDashboard() {
             <>
               <div className="admin-header">
                 <div className="admin-title">👥 Quản lý người dùng</div>
-                <button className="btn btn-primary btn-sm">➕ Thêm Staff</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowUserModal(true)}>➕ Thêm Staff</button>
               </div>
               <div className="table-wrapper">
                 <table className="data-table">
@@ -440,7 +446,7 @@ export function AdminDashboard() {
                         <td>
                           <div className="perms-list">
                             {u.perms.length === 0 ? (
-                              <span className="perm-basic">Cơ bản</span>
+                              <span className="perm-basic badge badge-cyan">Cơ bản</span>
                             ) : (
                               u.perms.map((p) => (
                                 <span key={p} className="badge badge-orange perm-badge">{p}</span>
@@ -472,7 +478,7 @@ export function AdminDashboard() {
             <>
               <div className="admin-header">
                 <div className="admin-title">🏷️ Quản lý danh mục</div>
-                <button className="btn btn-primary btn-sm">➕ Thêm danh mục</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowCatModal(true)}>➕ Thêm danh mục</button>
               </div>
               <div className="coupon-grid">
                 {CATEGORIES.map((cat) => (
@@ -572,8 +578,204 @@ export function AdminDashboard() {
               </div>
             </>
           )}
+      {/* ── SETTINGS ── */}
+      {state.adminTab === "settings" && (
+        <div className="card" style={{ padding: 24, margin: 24 }}>
+          <h2 style={{ fontFamily: "var(--font-head)", marginBottom: 20 }}>⚙️ Cài đặt hệ thống</h2>
+          <div style={{ display: "grid", gap: 16, maxWidth: 600 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Tên Website</label>
+              <input type="text" className="input" defaultValue="TechZone" />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Email liên hệ</label>
+              <input type="email" className="input" defaultValue="support@techzone.vn" />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Hotline</label>
+              <input type="text" className="input" defaultValue="1800-TECHZONE" />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Phí vận chuyển mặc định (VNĐ)</label>
+              <input type="number" className="input" defaultValue="30000" />
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+              <input type="checkbox" defaultChecked /> Cho phép đăng ký tài khoản mới
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+              <input type="checkbox" defaultChecked /> Bật chế độ bảo trì (Maintenance Mode)
+            </label>
+            <div>
+              <button className="btn btn-primary" onClick={() => dispatch({ type: "ADD_TOAST", toast: { type: "success", title: "Đã lưu cài đặt!" } })}>Lưu thay đổi</button>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* ── PERMISSIONS ── */}
+      {state.adminTab === "permissions" && (
+        <div className="card" style={{ padding: 24, margin: 24 }}>
+          <h2 style={{ fontFamily: "var(--font-head)", marginBottom: 20 }}>🔒 Phân quyền Roles</h2>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Role Name</th>
+                <th>Mô tả</th>
+                <th>Số lượng Users</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span className="badge badge-purple">ADMIN</span></td>
+                <td>Toàn quyền hệ thống</td>
+                <td>2</td>
+                <td><button className="btn btn-secondary btn-sm" disabled>Mặc định</button></td>
+              </tr>
+              <tr>
+                <td><span className="badge badge-cyan">STAFF</span></td>
+                <td>Nhân viên hỗ trợ, xử lý đơn</td>
+                <td>15</td>
+                <td><button className="btn btn-secondary btn-sm" onClick={() => dispatch({ type: "ADD_TOAST", toast: { type: "info", title: "Sửa quyền" } })}>Sửa</button></td>
+              </tr>
+              <tr>
+                <td><span className="badge badge-green">USER</span></td>
+                <td>Khách hàng tiêu chuẩn</td>
+                <td>1254</td>
+                <td><button className="btn btn-secondary btn-sm" disabled>Mặc định</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={() => dispatch({ type: "ADD_TOAST", toast: { type: "info", title: "Thêm Role mới" } })}>➕ Thêm Role</button>
+        </div>
+      )}
+
+      {/* ── SYSTEM LOGS ── */}
+      {state.adminTab === "logs" && (
+        <div className="card" style={{ padding: 24, margin: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <h2 style={{ fontFamily: "var(--font-head)" }}>📋 Logs hệ thống</h2>
+            <button className="btn btn-ghost btn-sm">Làm mới</button>
+          </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>User</th>
+                <th>Hành động</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { time: "10:24 15/05/2026", user: "admin@techzone.vn", action: "Cập nhật sản phẩm #PRD001", ip: "192.168.1.1" },
+                { time: "09:12 15/05/2026", user: "support@techzone.vn", action: "Đổi trạng thái đơn hàng #ORD123 sang Đang giao", ip: "192.168.1.5" },
+                { time: "08:00 15/05/2026", user: "SYSTEM", action: "Chạy cronjob dọn dẹp giỏ hàng rác", ip: "localhost" },
+              ].map((l, i) => (
+                <tr key={i}>
+                  <td style={{ color: "var(--muted)" }}>{l.time}</td>
+                  <td>{l.user}</td>
+                  <td>{l.action}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{l.ip}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── BACKUP DB ── */}
+      {state.adminTab === "backup" && (
+        <div className="card" style={{ padding: 24, margin: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <h2 style={{ fontFamily: "var(--font-head)" }}>💾 Backup Database</h2>
+            <button className="btn btn-primary" onClick={() => dispatch({ type: "ADD_TOAST", toast: { type: "success", title: "Đang tạo bản sao lưu mới..." } })}>Tạo bản sao lưu</button>
+          </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Tên file</th>
+                <th>Ngày tạo</th>
+                <th>Dung lượng</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { name: "backup_techzone_20260514.sql", date: "14/05/2026", size: "24.5 MB" },
+                { name: "backup_techzone_20260507.sql", date: "07/05/2026", size: "23.1 MB" },
+              ].map((b, i) => (
+                <tr key={i}>
+                  <td><strong>{b.name}</strong></td>
+                  <td style={{ color: "var(--muted)" }}>{b.date}</td>
+                  <td>{b.size}</td>
+                  <td>
+                    <button className="btn btn-secondary btn-sm" style={{ marginRight: 8 }}>Tải xuống</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => dispatch({ type: "ADD_TOAST", toast: { type: "info", title: "Đã xóa bản sao lưu" } })}>Xóa</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       </div>
+    </div>
+
+      {showUserModal && (
+        <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
+          <div className="modal-content card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 450, padding: 24, margin: "0 auto", marginBottom: "15vh" }}>
+            <h3 style={{ fontFamily: "var(--font-head)", marginBottom: 16 }}>Thêm/Sửa người dùng</h3>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Họ tên</label>
+              <input type="text" className="input" placeholder="Nguyễn Văn A" />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Email</label>
+              <input type="email" className="input" placeholder="email@example.com" />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Vai trò (Role)</label>
+              <select className="input">
+                <option>USER</option>
+                <option>STAFF</option>
+                <option>ADMIN</option>
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+              <button className="btn btn-ghost" onClick={() => setShowUserModal(false)}>Hủy</button>
+              <button className="btn btn-primary" onClick={() => {
+                setShowUserModal(false);
+                dispatch({ type: "ADD_TOAST", toast: { type: "success", title: "Đã lưu thông tin người dùng!" } });
+              }}>Lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCatModal && (
+        <div className="modal-overlay" onClick={() => setShowCatModal(false)}>
+          <div className="modal-content card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 450, padding: 24, margin: "0 auto", marginBottom: "10vh" }}>
+            <h3 style={{ fontFamily: "var(--font-head)", marginBottom: 16 }}>Thêm/Sửa danh mục</h3>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Tên danh mục</label>
+              <input type="text" className="input" placeholder="VD: Điện thoại" />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>Icon/Emoji</label>
+              <input type="text" className="input" placeholder="📱" />
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+              <button className="btn btn-ghost" onClick={() => setShowCatModal(false)}>Hủy</button>
+              <button className="btn btn-primary" onClick={() => {
+                setShowCatModal(false);
+                dispatch({ type: "ADD_TOAST", toast: { type: "success", title: "Đã lưu danh mục!" } });
+              }}>Lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
