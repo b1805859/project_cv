@@ -28,6 +28,18 @@ public class ItemEntity {
     private String itemId;
     private String name;
     private BigDecimal price;
+    private BigDecimal oldPrice;
+    private Double rating;
+    private Integer reviews;
+    private String emoji;
+    private Integer sold;
+    private Integer stock;
+    private String brand;
+    @Column(columnDefinition = "TEXT")
+    private String specs; // Store as JSON string
+    private Boolean isNew;
+    private Boolean isHot;
+    @Column(columnDefinition = "TEXT")
     private String description;
     @CreationTimestamp
     @Column(updatable = false)

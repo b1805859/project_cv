@@ -11,5 +11,11 @@ public interface ItemService {
 
     List<ItemResponse> fetchItems();
 
+    List<ItemResponse> searchItems(String keyword, String categoryId, String brand);
+
+    ItemResponse getById(String itemId);
+
+    ItemResponse update(String itemId, ItemRequest request);
+
     void deleteItem(String itemId);
 }

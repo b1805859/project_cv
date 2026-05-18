@@ -90,6 +90,20 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    margin-bottom: 24px;
+    
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      .title {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: 16px;
+      }
+    }
   }
   .data-table {
     width: 100%;
@@ -111,6 +125,8 @@
       border-bottom: 1px solid var(--border);
       font-size: 13px;
       vertical-align: middle;
+      &.mono-id { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+      &.head-total { font-weight: 700; color: var(--accent); }
     }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--card2); }
@@ -134,6 +150,21 @@
       } 
     } 
     .chart-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  }
+
+  .top-products-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    .title { font-family: var(--font-head); font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+    .top-product-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); transition: 0.2s;
+      &:hover { border-color: var(--accent); transform: translateY(-2px); }
+      .rank { font-weight: 800; font-family: var(--font-head); font-size: 14px; width: 30px; &.top-3 { color: var(--accent); text-shadow: 0 0 10px rgba(0,212,255,0.4); } &.other { color: var(--muted); } }
+      .emoji { font-size: 24px; background: var(--bg); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+      .info { flex: 1; .name { font-weight: 600; font-size: 14px; margin-bottom: 2px; } .sold { font-size: 12px; color: var(--muted); } }
+    }
   }
 
   .cat-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; .icon { font-size: 24px; } .content { flex: 1; .meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; .count { color: var(--muted); } } .progress { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; .progress-bar { height: 100%; background: var(--accent); } } } }

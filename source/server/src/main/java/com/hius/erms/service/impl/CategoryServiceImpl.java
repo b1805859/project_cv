@@ -74,7 +74,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryResponse> read() {
         return categoryRepository.findAll().stream()
-                .map(categoryMapper::toResponse).collect(Collectors.toList());
+                .map(category -> {
+                    CategoryResponse response = categoryMapper.toResponse(category);
+                    response.setCount((int) itemRepository.countByCategory(category));
+                    return response;
+                }).collect(Collectors.toList());
     }
 
     /**

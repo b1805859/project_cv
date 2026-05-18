@@ -28,6 +28,7 @@ public class CategoryEntity {
     private String description;
     private String bgColor;
     private String imgUrl;
+    private String icon;
     @CreationTimestamp
     @Column(updatable = false)
     private Timestamp createAt;

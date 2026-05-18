@@ -13,21 +13,26 @@ import java.util.List;
 @Builder
 public class OrderRequest {
     private String customerName;
-    private String phoneNumber;
+    private String customerPhone;
+    private String customerEmail;
+    private String customerAddress;
+    private String city;
+    private String note;
     private List<OrderItemRequest> cartItems;
-    private Double subtoatl;
-    private Double tax;
+    private Double subtotal;
+    private Double shipping;
+    private Double discount;
     private Double grandTotal;
-    private String paymentMethod;
+    private String promoCode;
+    private String paymentMethod; // MOMO or COD
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class OrderItemRequest{
+    public static class OrderItemRequest {
         private String itemId;
         private String name;
         private Double price;
         private Integer quantity;
-
     }
 }

@@ -84,4 +84,52 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new AppException(ErrorCode.ITEM_NOT_FOUND));
         itemRepository.delete(itemEntity);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ItemResponse> searchItems(String keyword, String categoryId, String brand) {
+        return itemRepository.searchItems(
+                keyword != null && !keyword.isBlank() ? keyword : null,
+                categoryId != null && !categoryId.isBlank() ? categoryId : null,
+                brand != null && !brand.isBlank() ? brand : null
+        ).stream().map(itemMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemResponse getById(String itemId) {
+        ItemEntity item = itemRepository.findByItemId(itemId)
+                .orElseThrow(() -> new AppException(ErrorCode.ITEM_NOT_FOUND));
+        return itemMapper.toResponse(item);
+    }
+
+    @Override
+    @Transactional
+    public ItemResponse update(String itemId, ItemRequest request) {
+        ItemEntity item = itemRepository.findByItemId(itemId)
+                .orElseThrow(() -> new AppException(ErrorCode.ITEM_NOT_FOUND));
+
+        CategoryEntity existingCategory = categoryRepository
+                .findByCategoryId(request.getCategoryId())
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        item.setName(request.getName());
+        item.setPrice(request.getPrice());
+        item.setOldPrice(request.getOldPrice());
+        item.setCategory(existingCategory);
+        item.setDescription(request.getDescription());
+        item.setImgUrl(request.getImgUrl());
+        item.setEmoji(request.getEmoji());
+        item.setSold(request.getSold());
+        item.setStock(request.getStock());
+        item.setBrand(request.getBrand());
+        item.setSpecs(request.getSpecs());
+        item.setIsNew(request.getIsNew());
+        item.setIsHot(request.getIsHot());
+        item.setRating(request.getRating());
+        item.setReviews(request.getReviews());
+
+        item = itemRepository.save(item);
+        return itemMapper.toResponse(item);
+    }
 }

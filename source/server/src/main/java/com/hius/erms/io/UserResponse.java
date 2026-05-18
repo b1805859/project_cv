@@ -15,6 +15,8 @@ public class UserResponse {
     private String userId;
     private String name;
     private String email;
+    private String phone;
+    private String avatar;
     private Timestamp createAt;
     private Timestamp updateAt;
     private String role;

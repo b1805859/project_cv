@@ -14,4 +14,5 @@ public class CategoryRequest {
     private String description;
     private String bgColor;
     private String imgUrl;
+    private String icon;
 }

@@ -74,4 +74,35 @@ public class ItemController {
                 .message("Item deleted successfully")
                 .build();
     }
+
+    /**
+     * Retrieve item details by ID for admin.
+     *
+     * @param itemId item ID
+     * @return ApiResponse containing the item
+     */
+    @GetMapping("/{itemId}")
+    public ApiResponse<ItemResponse> getItem(@PathVariable String itemId) {
+        return ApiResponse.<ItemResponse>builder()
+                .message("Fetched item details successfully")
+                .data(itemService.getById(itemId))
+                .build();
+    }
+
+    /**
+     * Update item details.
+     *
+     * @param itemId item ID
+     * @param request JSON ItemRequest payload
+     * @return ApiResponse containing updated item
+     */
+    @PutMapping("/{itemId}")
+    public ApiResponse<ItemResponse> updateItem(
+            @PathVariable String itemId,
+            @RequestBody ItemRequest request) {
+        return ApiResponse.<ItemResponse>builder()
+                .message("Item updated successfully")
+                .data(itemService.update(itemId, request))
+                .build();
+    }
 }

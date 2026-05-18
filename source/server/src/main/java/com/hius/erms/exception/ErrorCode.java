@@ -34,6 +34,10 @@ public enum ErrorCode {
     INVALID_ITEM_DATA(HttpStatus.BAD_REQUEST, "Invalid item data"),
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "Item out of stock"),
 
+    // ================= ORDER =================
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "Order not found"),
+    INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "Invalid order status"),
+
     // ================= MOMO =================
     MOMO_PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "MoMo payment failed"),
     MOMO_INVALID_SIGNATURE(HttpStatus.BAD_REQUEST, "MoMo signature verification failed"),

@@ -14,8 +14,18 @@ import java.math.BigDecimal;
 public class ItemRequest {
     private String name;
     private BigDecimal price;
+    private BigDecimal oldPrice;
     private String categoryId;
     private String description;
     private String imgUrl;
-
+    private String emoji;
+    private Integer sold;
+    private Integer stock;
+    private String brand;
+    private String specs; // JSON string
+    private Boolean isNew;
+    private Boolean isHot;
+    private Double rating;
+    private Integer reviews;
 }
+

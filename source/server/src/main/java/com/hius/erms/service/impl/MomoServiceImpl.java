@@ -1,8 +1,13 @@
 package com.hius.erms.service.impl;
 
 import com.hius.erms.client.MomoApi;
+import com.hius.erms.entity.OrderEntity;
+import com.hius.erms.exception.AppException;
+import com.hius.erms.exception.ErrorCode;
 import com.hius.erms.io.MomoCreateRequest;
 import com.hius.erms.io.MomoCreateResponse;
+import com.hius.erms.io.MomoIPNResponse;
+import com.hius.erms.repository.OrderRepository;
 import com.hius.erms.service.MomoService;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -12,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -37,14 +43,13 @@ public class MomoServiceImpl implements MomoService {
     private String REQUEST_TYPE;
 
     private final MomoApi momoApi;
+    private final OrderRepository orderRepository;
 
     @Override
-    public MomoCreateResponse createQR(){
-        String orderId = UUID.randomUUID().toString();
+    public MomoCreateResponse createQR(String orderId, long amount){
         String orderInfo = "Thanh toan don hang " + orderId;
         String extraData = "";
         String requestId = UUID.randomUUID().toString();
-        long amount = 10000;
         String rawSignature = String.format(
             "accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s",
             ACCESS_KEY, amount, extraData, IPN_URL, orderId, orderInfo, PARTNER_CODE, REDIRECT_URL, requestId, REQUEST_TYPE);
@@ -64,7 +69,7 @@ public class MomoServiceImpl implements MomoService {
         MomoCreateRequest request = MomoCreateRequest.builder()
                 .partnerCode(PARTNER_CODE)
                 .requestId(requestId)
-                .amount(10000)
+                .amount(amount)
                 .orderId(orderId)
                 .orderInfo(orderInfo)
                 .redirectUrl(REDIRECT_URL)
@@ -76,6 +81,28 @@ public class MomoServiceImpl implements MomoService {
                 .build();
 
         return momoApi.createMomoQR(request);
+    }
+
+    @Override
+    @Transactional
+    public void handleIPN(MomoIPNResponse ipnResponse) {
+        log.info("Received MoMo IPN callback for order: {}, ResultCode: {}", ipnResponse.getOrderId(), ipnResponse.getResultCode());
+
+        OrderEntity order = orderRepository.findByOrderId(ipnResponse.getOrderId())
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        order.setMomoTransId(ipnResponse.getTransId());
+        order.setMomoOrderId(ipnResponse.getOrderId());
+
+        if ("0".equals(ipnResponse.getResultCode())) {
+            log.info("MoMo payment succeeded for order: {}", ipnResponse.getOrderId());
+            order.setStatus(OrderEntity.OrderStatus.PAID);
+        } else {
+            log.warn("MoMo payment failed for order: {} with code: {}", ipnResponse.getOrderId(), ipnResponse.getResultCode());
+            order.setStatus(OrderEntity.OrderStatus.FAILED);
+        }
+
+        orderRepository.save(order);
     }
 
     private String signHmacSHA256(String data, String key) throws Exception {
