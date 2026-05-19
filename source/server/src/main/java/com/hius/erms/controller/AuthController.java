@@ -9,6 +9,9 @@ import com.hius.erms.service.UserService;
 import com.hius.erms.service.impl.AppUserDetailsService;
 import com.hius.erms.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import com.hius.erms.io.UserRequest;
+import com.hius.erms.io.UserResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,8 +21,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Map;
+
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST controller responsible for authentication operations.
@@ -59,6 +65,23 @@ public class AuthController {
 
         return ApiResponse.<AuthResponse>builder()
                 .data(new AuthResponse(request.getEmail(), token, role))
+                .build();
+    }
+
+    /**
+     * Public user registration endpoint.
+     *
+     * @param request the registration request payload
+     * @return ApiResponse containing the created user response
+     */
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<UserResponse> register(@RequestBody UserRequest request) {
+        // Enforce USER role for public registration for security
+        request.setRole("USER");
+        return ApiResponse.<UserResponse>builder()
+                .message("User registered successfully")
+                .data(userService.createUser(request))
                 .build();
     }
 

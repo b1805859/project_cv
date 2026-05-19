@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
+import { authService } from "../../services/authService";
 import "./AuthPage.scss";
 
 export function AuthPage() {
@@ -18,7 +19,7 @@ export function AuthPage() {
     window.scrollTo(0, 0);
   };
 
-  function handleAuth() {
+  async function handleAuth() {
     if (!form.email || !form.password) {
       dispatch({
         type: "ADD_TOAST",
@@ -30,34 +31,76 @@ export function AuthPage() {
       });
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
-      const user = {
-        name:
-          mode === "register"
-            ? form.name || form.email.split("@")[0]
-            : form.email === "admin@techzone.vn"
-              ? "Admin TechZone"
-              : form.email.split("@")[0],
-        email: form.email,
-        role: form.email === "admin@techzone.vn" ? "ADMIN" : "USER",
-        avatar: null,
-      };
-      dispatch({ type: "SET_USER", user });
+
+    if (mode === "register" && !form.name) {
       dispatch({
         type: "ADD_TOAST",
         toast: {
-          type: "success",
-          title:
-            mode === "login"
-              ? "Đăng nhập thành công!"
-              : "Tạo tài khoản thành công!",
-          msg: `Chào mừng, ${user.name}!`,
+          type: "error",
+          title: "Thiếu thông tin",
+          msg: "Vui lòng điền họ và tên",
         },
       });
-      nav("home");
+      return;
+    }
+
+    if (mode === "register" && form.password !== form.confirm) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          type: "error",
+          title: "Sai mật khẩu xác nhận",
+          msg: "Mật khẩu xác nhận không trùng khớp",
+        },
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (mode === "register") {
+        await authService.handleRegister({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          phone: "",
+          avatar: "",
+          role: "USER"
+        });
+        dispatch({
+          type: "ADD_TOAST",
+          toast: {
+            type: "success",
+            title: "Tạo tài khoản thành công!",
+            msg: "Đăng nhập với thông tin vừa đăng ký.",
+          },
+        });
+        setMode("login");
+      } else {
+        const user = await authService.handleLogin(form.email, form.password);
+        dispatch({ type: "SET_USER", user });
+        dispatch({
+          type: "ADD_TOAST",
+          toast: {
+            type: "success",
+            title: "Đăng nhập thành công!",
+            msg: `Chào mừng, ${user.name}!`,
+          },
+        });
+        nav("home");
+      }
+    } catch (err) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          type: "error",
+          title: mode === "login" ? "Đăng nhập thất bại" : "Đăng ký thất bại",
+          msg: err.message || "Email hoặc mật khẩu không chính xác.",
+        },
+      });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   }
 
   function googleLogin() {

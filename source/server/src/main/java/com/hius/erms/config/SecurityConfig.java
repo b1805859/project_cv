@@ -1,6 +1,5 @@
 package com.hius.erms.config;
 
-
 import com.hius.erms.filter.JwtRequestFilter;
 import com.hius.erms.service.impl.AppUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -30,58 +28,54 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AppUserDetailsService appUserDetailsService;
-    private final JwtRequestFilter jwtRequestFilter;
+        private final AppUserDetailsService appUserDetailsService;
+        private final JwtRequestFilter jwtRequestFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/auth/login",
-                                        "/auth/encode").permitAll()
-                                .requestMatchers("/categories", "/items", "/orders", "/files", "/momo")
-                                .hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .anyRequest().authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtRequestFilter,
-                        UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http) throws Exception {
+                http.cors(Customizer.withDefaults())
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .authorizeHttpRequests(
+                                                auth -> auth.requestMatchers("/auth/login",
+                                                                "/auth/encode",
+                                                                "/auth/register").permitAll()
+                                                                .requestMatchers("/categories", "/items", "/orders",
+                                                                                "/files", "/momo")
+                                                                .hasAnyRole("USER", "ADMIN")
+                                                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                                .anyRequest().authenticated())
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
+                                .addFilterBefore(jwtRequestFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
+                return http.build();
+        }
 
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOrigins(List.of("http://localhost:5173"));
+                config.setAllowedMethods(
+                                List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(true);
 
-    @Bean
-    public CorsFilter corsFilter() {
-        return new CorsFilter(corsConfigurationSource());
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", config);
+                return source;
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(appUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return new ProviderManager(authProvider);
-    }
+        @Bean
+        public AuthenticationManager authenticationManager() {
+                DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+                authProvider.setUserDetailsService(appUserDetailsService);
+                authProvider.setPasswordEncoder(passwordEncoder());
+                return new ProviderManager(authProvider);
+        }
 }
