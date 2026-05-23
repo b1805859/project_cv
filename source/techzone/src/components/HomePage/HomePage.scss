@@ -336,11 +336,16 @@
 
       .banner-actions {
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         gap: 24px;
         flex-wrap: wrap;
 
         .timer-box {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+
           .label {
             font-size: 11px;
             color: var(--muted);

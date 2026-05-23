@@ -21,6 +21,12 @@ public class JwtUtil {
     @Value("${jwt.secret.key}")
     private String SECRET_KEY;
 
+    @Value("${jwt.expiration.minutes:480}")
+    private long jwtExpirationMinutes;
+
+    @Value("${jwt.allowed.clock.skew.seconds:120}")
+    private long allowedClockSkewSeconds;
+
     public String generateToken(
             UserDetails userDetails) { // Use email as username
         Map<String, Object> claims = new HashMap<>();
@@ -33,7 +39,7 @@ public class JwtUtil {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(
-                        new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                        new Date(System.currentTimeMillis() + 1000 * 60 * jwtExpirationMinutes))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -60,6 +66,7 @@ public class JwtUtil {
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignKey())
+                .setAllowedClockSkewSeconds(allowedClockSkewSeconds)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

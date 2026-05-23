@@ -1,16 +1,79 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { AppContext } from "../../context/AppContext";
 import "./AdminCreateTab.scss";
 
 export function AdminCreateTab() {
   const { dispatch } = useContext(AppContext);
   const [createType, setCreateType] = useState("product");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleSave = () => {
     dispatch({
       type: "ADD_TOAST",
       toast: { type: "success", title: "Thành công!", msg: `Đã lưu ${createType === 'product' ? 'sản phẩm' : 'danh mục'} mới` }
     });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const handleSelectImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
+  };
+
+  const handleDragEnter = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
   };
 
   return (
@@ -75,14 +138,36 @@ export function AdminCreateTab() {
 
             <div className="form-section">
               <div className="section-title">🖼️ Media & Hình ảnh</div>
-              <div className="drag-drop-zone">
+              <div
+              className={`drag-drop-zone ${dragActive ? 'active' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={handleSelectImage}
+            >
                 <div className="drag-drop-icon">📥</div>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>Kéo thả hình ảnh vào đây</div>
                 <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
                   Hỗ trợ JPG, PNG, WEBP (Tối đa 5MB)
                 </div>
-                <button className="btn btn-secondary btn-sm">Chọn từ máy tính</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); handleSelectImage(); }}>
+                  Chọn từ máy tính
+                </button>
+                <input
+                  ref={fileInputRef}
+                  className="file-input-hidden"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
               </div>
+              {previewUrl && (
+                <div className="image-preview-container">
+                  <img src={previewUrl} alt="Ảnh sản phẩm" />
+                  <div className="preview-label">Ảnh đã chọn để upload</div>
+                </div>
+              )}
             </div>
             
             <div className="form-section">

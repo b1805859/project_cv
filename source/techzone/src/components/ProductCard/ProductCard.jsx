@@ -21,7 +21,11 @@ export function ProductCard({ product }) {
   return (
     <div className="product-card">
       <div className="product-img" onClick={goDetail}>
-        <span className="emoji-display">{product.emoji}</span>
+        {product.imageUrl ? (
+          <img src={product.imageUrl} alt={product.name} />
+        ) : (
+          <span className="emoji-display">{product.emoji}</span>
+        )}
         <div className="product-badges">
           {product.isNew && <span className="label label-new">MỚI</span>}
           {product.isHot && <span className="label label-hot">🔥 HOT</span>}

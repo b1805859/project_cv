@@ -25,6 +25,12 @@ aws:
 jwt:
   secret:
     key: kRUYzCUYfFyAkXIp1P5NSdnXnJlZnNWYFwOUsKi3S/Y=
+  expiration:
+    minutes: 480
+  allowed:
+    clock:
+      skew:
+        seconds: 120
 
 cloudinary:
   cloud-name: dajhznf3b

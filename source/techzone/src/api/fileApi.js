@@ -9,10 +9,6 @@ export const fileApi = {
   uploadFile: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return httpClient.post('/files/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return httpClient.post('/files/upload', formData);
   },
 };

@@ -1,5 +1,7 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { CATEGORIES } from '../../data/mockData';
+import { fileApi } from '../../api/fileApi';
+import { productService } from '../../services/productService';
 import { AppContext } from '../../context/AppContext';
 import "./AdminProductModal.scss";
 
@@ -8,20 +10,112 @@ export function AdminProductModal({ product, onClose }) {
   const isEdit = !!product;
   const [form, setForm] = useState(() => product || {
     id: Date.now(), name:'', category:'Laptop', catId:1, price:'', oldPrice:'',
-    rating:4.5, reviews:0, emoji:'📦', sold:0, stock:10, brand:'',
+    imageUrl: product?.imageUrl || product?.imgUrl || '', rating:4.5, reviews:0, emoji:'📦', sold:0, stock:10, brand:'',
     specs:{}, description:'', isNew:false, isHot:false
   });
   const [specKey, setSpecKey] = useState('');
   const [specVal, setSpecVal] = useState('');
+  const [fileToUpload, setFileToUpload] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(product?.imageUrl || product?.imgUrl || '');
+  const [saving, setSaving] = useState(false);
 
-  function save() {
-    if (!form.name || !form.price || !form.brand) {
-      dispatch({ type:'ADD_TOAST', toast:{ type:'error', title:'Thiếu thông tin bắt buộc' } }); return;
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  function handleFileChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
     }
-    const prod = { ...form, price: Number(form.price), oldPrice: form.oldPrice ? Number(form.oldPrice) : null };
-    dispatch({ type: isEdit ? 'ADMIN_UPDATE_PRODUCT' : 'ADMIN_ADD_PRODUCT', product: prod });
-    dispatch({ type:'ADD_TOAST', toast:{ type:'success', title: isEdit ? 'Cập nhật thành công!' : 'Thêm sản phẩm thành công!' } });
-    onClose();
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    setFileToUpload(file);
+  }
+
+  function handleDragEnter(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  }
+
+  function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(objectUrl);
+    setFileToUpload(file);
+  }
+
+  async function save() {
+    if (!form.name || !form.price || !form.brand) {
+      dispatch({ type:'ADD_TOAST', toast:{ type:'error', title:'Thiếu thông tin bắt buộc' } });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      let imageUrl = form.imageUrl;
+      if (fileToUpload) {
+        const uploadResponse = await fileApi.uploadFile(fileToUpload);
+        const uploadedUrl = uploadResponse?.data?.imgUrl;
+        if (!uploadedUrl) {
+          throw new Error('Không nhận được URL ảnh sau khi upload.');
+        }
+        imageUrl = uploadedUrl;
+      }
+
+      const payload = {
+        ...form,
+        imgUrl: imageUrl,
+        imageUrl,
+        price: Number(form.price),
+        oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
+      };
+
+      const savedProduct = await productService.saveProduct(payload, isEdit ? product.id : null);
+      dispatch({ type: isEdit ? 'ADMIN_UPDATE_PRODUCT' : 'ADMIN_ADD_PRODUCT', product: savedProduct });
+      dispatch({ type:'ADD_TOAST', toast:{ type:'success', title: isEdit ? 'Cập nhật thành công!' : 'Thêm sản phẩm thành công!' } });
+      onClose();
+    } catch (error) {
+      dispatch({
+        type: 'ADD_TOAST',
+        toast: {
+          type: 'error',
+          title: 'Lưu sản phẩm thất bại',
+          message: error?.message || 'Vui lòng thử lại.',
+        },
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   function addSpec() {
@@ -32,12 +126,55 @@ export function AdminProductModal({ product, onClose }) {
 
   const catOptions = CATEGORIES.map(c => ({ id:c.id, name:c.name }));
   const emojiOptions = ['💻','🎮','🎧','⌨️','📱','💾','🔋','🖥️','🖱️','🎬','🎵','📷'];
+  const previewSource = previewUrl || form.imageUrl;
 
   return (
     <div className="admin-product-modal modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
       <div className="modal modal-custom">
         <button className="modal-close" onClick={onClose}>×</button>
         <div className="modal-title">{isEdit ? '✏️ Sửa sản phẩm' : '➕ Thêm sản phẩm mới'}</div>
+
+        <div className="form-row form-row-custom">
+          <div className="form-group form-group-no-margin form-group-full">
+            <label className="form-label">Media & Hình ảnh</label>
+            <div
+              className={`upload-zone ${dragActive ? 'active' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <div className="upload-icon">📁</div>
+              <div className="upload-title">Kéo thả hình ảnh vào đây</div>
+              <div className="upload-hint">Hỗ trợ JPG, PNG, WEBP (Tối đa 5MB)</div>
+              <label className="upload-button" htmlFor="product-image-input">
+                Chọn từ máy tính
+              </label>
+              <input
+                id="product-image-input"
+                className="file-input-hidden"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </div>
+            <small className="upload-note">Hoặc dán URL ảnh vào ô dưới đây nếu không muốn upload.</small>
+            <input
+              className="input"
+              type="url"
+              value={form.imageUrl}
+              onChange={e => setForm({...form,imageUrl:e.target.value})}
+              placeholder="https://example.com/image.jpg"
+              style={{ marginTop: '12px' }}
+            />
+            {fileToUpload && <small className="upload-note">Ảnh được chọn để preview. Upload sẽ thực hiện khi lưu.</small>}
+          </div>
+        </div>
+        {previewSource && (
+          <div className="image-preview">
+            <img src={previewSource} alt={form.name || 'Ảnh sản phẩm'} />
+          </div>
+        )}
 
         <div className="form-row form-row-custom">
           <div className="form-group form-group-no-margin">
@@ -77,19 +214,21 @@ export function AdminProductModal({ product, onClose }) {
           </div>
         </div>
 
-        <div className="form-group form-row-custom">
-          <label className="form-label">Emoji icon</label>
-          <div className="emoji-options">
-            {emojiOptions.map(e => (
-              <div 
-                key={e} 
-                className={`emoji-box ${form.emoji === e ? 'active' : ''}`}
-                onClick={() => setForm({...form,emoji:e})}
-              >
-                {e}
-              </div>
-            ))}
-            <input className="input emoji-input" value={form.emoji} onChange={e => setForm({...form,emoji:e.target.value})} />
+        <div className="form-row form-row-custom">
+          <div className="form-group form-group-no-margin form-group-full">
+            <label className="form-label">Emoji icon</label>
+            <div className="emoji-options">
+              {emojiOptions.map(e => (
+                <div 
+                  key={e} 
+                  className={`emoji-box ${form.emoji === e ? 'active' : ''}`}
+                  onClick={() => setForm({...form,emoji:e})}
+                >
+                  {e}
+                </div>
+              ))}
+              <input className="input emoji-input" value={form.emoji} onChange={e => setForm({...form,emoji:e.target.value})} />
+            </div>
           </div>
         </div>
 
@@ -129,8 +268,10 @@ export function AdminProductModal({ product, onClose }) {
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Hủy</button>
-          <button className="btn btn-primary" onClick={save}>{isEdit ? '💾 Lưu thay đổi' : '➕ Thêm sản phẩm'}</button>
+          <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Hủy</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>
+            {saving ? 'Đang lưu...' : isEdit ? '💾 Lưu thay đổi' : '➕ Thêm sản phẩm'}
+          </button>
         </div>
       </div>
     </div>

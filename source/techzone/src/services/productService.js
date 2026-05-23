@@ -57,6 +57,7 @@ export const productService = {
       sold: toNumber(item.sold ?? item.soldCount ?? item.totalSold),
       stock: toNumber(item.stock ?? item.quantity ?? item.availableQuantity),
       brand: item.brandName ?? item.brand ?? "",
+      imageUrl: item.imgUrl ?? item.imageUrl ?? "",
       emoji: item.emoji ?? item.icon ?? "\uD83D\uDCE6",
       isNew: Boolean(item.isNew),
       isHot: Boolean(item.isHot),

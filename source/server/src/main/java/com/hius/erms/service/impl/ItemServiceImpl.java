@@ -37,7 +37,6 @@ public class ItemServiceImpl implements ItemService {
      * Creates a new item.
      *
      * @param request the item request containing item details
-     * @param file    the uploaded file associated with the item (e.g., image)
      * @return the created item as {@link ItemResponse}
      * @throws AppException if the category is not found
      */

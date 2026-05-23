@@ -26,6 +26,6 @@ public class AppUserDetailsService implements UserDetailsService {
                         "Email not found for the email: " + email));
         return new User(exitingUser.getEmail(), exitingUser.getPassword(),
                 Collections.singleton(
-                        new SimpleGrantedAuthority(exitingUser.getRole())));
+                        new SimpleGrantedAuthority("ROLE_" + exitingUser.getRole())));
     }
 }

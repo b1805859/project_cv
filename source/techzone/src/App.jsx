@@ -11,11 +11,23 @@ import { productService } from "./services/productService";
 import { categoryService } from "./services/categoryService";
 import { blogService } from "./services/blogService";
 
-export function App() {
-  const [state, dispatch] = useReducer(reducerV2, {
+function loadPersistedState() {
+  const currentUser = localStorage.getItem("currentUser");
+  const user = currentUser ? JSON.parse(currentUser) : null;
+  const page = localStorage.getItem("appPage");
+  const pageData = localStorage.getItem("appPageData");
+
+  return {
     ...initialState,
+    user,
+    page: page || initialState.page,
+    pageData: pageData ? JSON.parse(pageData) : initialState.pageData,
     userActivity: [],
-  });
+  };
+}
+
+export function App() {
+  const [state, dispatch] = useReducer(reducerV2, loadPersistedState());
 
   useEffect(() => {
     if (state.page === "product" && state.pageData?.productId) {
@@ -58,6 +70,11 @@ export function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("appPage", state.page);
+    localStorage.setItem("appPageData", JSON.stringify(state.pageData));
+  }, [state.page, state.pageData]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
