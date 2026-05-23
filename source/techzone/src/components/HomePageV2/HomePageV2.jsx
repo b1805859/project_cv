@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import { CATEGORIES, PRODUCTS } from "../../data/mockData";
 import { AppContext } from "../../context/AppContext";
 import { formatPrice, stars } from "../../utils/helpers";
 import { ProductCard } from "../ProductCard/ProductCard";
@@ -12,16 +11,15 @@ import "./HomePageV2.scss";
 
 export function HomePageV2() {
   const { state, dispatch } = useContext(AppContext);
+  const products = state.adminProducts && state.adminProducts.length > 0 ? state.adminProducts : state.products;
+  const categories = state.categories || [];
+  const loading = products.length === 0;
   const nav = (page, data) => {
     dispatch({ type: "SET_PAGE", page, data });
     window.scrollTo(0, 0);
   };
-  const featured = (state.adminProducts || PRODUCTS)
-    .filter((p) => p.isHot || p.isNew)
-    .slice(0, 4);
-  const trending = [...(state.adminProducts || PRODUCTS)]
-    .sort((a, b) => b.sold - a.sold)
-    .slice(0, 5);
+  const featured = products.filter((p) => p.isHot || p.isNew).slice(0, 4);
+  const trending = [...products].sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(0, 5);
 
   return (
     <div className="page home-page-v2-container">
@@ -104,7 +102,7 @@ export function HomePageV2() {
             </h2>
           </div>
           <div className="categories-grid">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <div
                 key={cat.id}
                 className="cat-card"
@@ -207,7 +205,7 @@ export function HomePageV2() {
               <div className="section-label" style={{ marginBottom: 8 }}>// Mới nhất</div>
               <h2 className="col-title">✨ Sản phẩm mới</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {(state.adminProducts || PRODUCTS)
+                {products
                   .filter((p) => p.isNew)
                   .map((p) => (
                     <div
@@ -247,11 +245,11 @@ export function HomePageV2() {
               </h2>
             </div>
             <button className="btn btn-ghost" onClick={() => nav("products")}>
-              Xem tất cả ({(state.adminProducts || PRODUCTS).length}) →
+              Xem tất cả ({products.length}) →
             </button>
           </div>
           <div className="products-grid">
-            {(state.adminProducts || PRODUCTS).slice(4, 8).map((p) => (
+            {products.slice(4, 8).map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

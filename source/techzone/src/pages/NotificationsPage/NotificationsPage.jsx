@@ -1,46 +1,82 @@
-import { useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { NOTIFS_INIT } from '../../data/mockData';
+import { notificationService } from '../../services/notificationService';
 import "./NotificationsPage.scss";
 
 export function NotificationsPage() {
   const { dispatch } = useContext(AppContext);
-  const [notifs, setNotifs] = useState(NOTIFS_INIT);
+  const [notifs, setNotifs] = useState([]);
   const [filterType, setFilterType] = useState('all');
   const [showClearAllPopup, setShowClearAllPopup] = useState(false);
-  
-  const nav = (p) => { 
-    dispatch({ type: 'SET_PAGE', page: p }); 
-    window.scrollTo(0, 0); 
+
+  const nav = (p) => {
+    dispatch({ type: 'SET_PAGE', page: p });
+    window.scrollTo(0, 0);
   };
 
-  const filtered = filterType === 'all' 
-    ? notifs 
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await notificationService.getNotifications();
+        if (mounted) setNotifs(data);
+      } catch {
+        // ignore: giữ UI empty-state
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filtered = filterType === 'all'
+    ? notifs
     : filterType === 'unread'
-    ? notifs.filter(n => n.unread)
-    : notifs.filter(n => !n.unread);
+      ? notifs.filter(n => n.unread)
+      : notifs.filter(n => !n.unread);
 
   const unreadCount = notifs.filter(n => n.unread).length;
 
-  function markAsRead(id) {
-    setNotifs(ns => ns.map(n => n.id === id ? { ...n, unread: false } : n));
+  async function markAsRead(id) {
+    try {
+      const updated = await notificationService.markAsRead(id);
+      setNotifs(ns => ns.map(n => n.id === id ? { ...n, ...updated, unread: false } : n));
+    } catch (e) {
+      setNotifs(ns => ns.map(n => n.id === id ? { ...n, unread: false } : n));
+    }
   }
 
-  function markAllAsRead() {
-    setNotifs(ns => ns.map(n => ({ ...n, unread: false })));
+  async function markAllAsRead() {
+    try {
+      await notificationService.markAllAsRead();
+    } finally {
+      setNotifs(ns => ns.map(n => ({ ...n, unread: false })));
+    }
   }
 
-  function deleteNotification(id) {
-    setNotifs(ns => ns.filter(n => n.id !== id));
+  async function deleteNotification(id) {
+    try {
+      await notificationService.deleteNotification(id);
+      setNotifs(ns => ns.filter(n => n.id !== id));
+    } catch (e) {
+      // ignore
+    }
   }
 
   function clearAll() {
     setShowClearAllPopup(true);
   }
 
-  function confirmClearAll() {
-    setNotifs([]);
-    setShowClearAllPopup(false);
+  async function confirmClearAll() {
+    try {
+      await notificationService.clearAll();
+    } finally {
+      setNotifs([]);
+      setShowClearAllPopup(false);
+    }
   }
 
   function cancelClearAll() {
@@ -52,7 +88,7 @@ export function NotificationsPage() {
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">
-            <span onClick={() => nav('home')} style={{cursor:'pointer',color:'var(--accent)'}}>Trang chủ</span>
+            <span onClick={() => nav('home')} style={{ cursor: 'pointer', color: 'var(--accent)' }}>Trang chủ</span>
             <span className="breadcrumb-sep">/</span>
             <span>Thông báo</span>
           </div>
@@ -62,7 +98,6 @@ export function NotificationsPage() {
 
       <div className="page-content">
         <div className="notifications-container">
-          {/* Sidebar */}
           <aside className="notif-sidebar">
             <div className="notif-stats">
               <div className="stat-item">
@@ -76,19 +111,19 @@ export function NotificationsPage() {
             </div>
 
             <div className="notif-filters">
-              <button 
+              <button
                 className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
                 onClick={() => setFilterType('all')}
               >
                 📋 Tất cả ({notifs.length})
               </button>
-              <button 
+              <button
                 className={`filter-btn ${filterType === 'unread' ? 'active' : ''}`}
                 onClick={() => setFilterType('unread')}
               >
                 🔔 Chưa đọc ({unreadCount})
               </button>
-              <button 
+              <button
                 className={`filter-btn ${filterType === 'read' ? 'active' : ''}`}
                 onClick={() => setFilterType('read')}
               >
@@ -106,7 +141,6 @@ export function NotificationsPage() {
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="notif-main">
             {filtered.length === 0 ? (
               <div className="empty-state">
@@ -124,7 +158,7 @@ export function NotificationsPage() {
                     <div className="notif-item-icon" style={{ background: n.iconBg }}>
                       {n.icon}
                     </div>
-                    
+
                     <div className="notif-item-content">
                       <div className="notif-item-title">{n.title}</div>
                       <div className="notif-item-sub">{n.sub}</div>
@@ -133,20 +167,18 @@ export function NotificationsPage() {
 
                     <div className="notif-item-actions">
                       {n.unread && (
-                        <button 
-                          className="action-icon" 
-                          title="??nh d?u ?? ??c"
+                        <button
+                          className="action-icon"
                           onClick={() => markAsRead(n.id)}
                         >
-                          ?
+                          ✓
                         </button>
                       )}
-                      <button 
-                        className="action-icon delete" 
-                        title="X?a th?ng b?o"
+                      <button
+                        className="action-icon delete"
                         onClick={() => deleteNotification(n.id)}
                       >
-                        ???
+                        🗑️
                       </button>
                     </div>
 
@@ -159,7 +191,6 @@ export function NotificationsPage() {
         </div>
       </div>
 
-      {/* Clear All Confirmation Popup */}
       {showClearAllPopup && (
         <div className="clear-all-popup-overlay">
           <div className="clear-all-popup">
@@ -169,18 +200,8 @@ export function NotificationsPage() {
               Bạn có chắc muốn xóa tất cả thông báo? Hành động này không thể hoàn tác.
             </p>
             <div className="popup-actions">
-              <button 
-                className="btn btn-secondary" 
-                onClick={cancelClearAll}
-              >
-                Hủy
-              </button>
-              <button 
-                className="btn btn-danger" 
-                onClick={confirmClearAll}
-              >
-                Xóa tất cả
-              </button>
+              <button className="btn btn-secondary" onClick={cancelClearAll}>Hủy</button>
+              <button className="btn btn-danger" onClick={confirmClearAll}>Xóa tất cả</button>
             </div>
           </div>
         </div>
@@ -188,4 +209,5 @@ export function NotificationsPage() {
     </div>
   );
 }
+
 

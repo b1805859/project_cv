@@ -1,18 +1,19 @@
-import { useState, useContext } from "react";
-import { PRODUCTS } from "../../data/mockData";
+import { useState, useContext, useEffect } from "react";
 import { AppContext } from "../../context/AppContext";
 import { formatPrice, formatDate, stars } from "../../utils/helpers";
 import { ProductCard } from '../../components/ProductCard/ProductCard';
 import { Footer } from "../../components/Footer/Footer";
 import { RecentlyViewedStrip } from "../../components/RecentlyViewedStrip/RecentlyViewedStrip";
+import { productService } from "../../services/productService";
 import "./ProductDetailPage.scss";
 
 export function ProductDetailPage() {
   const { state, dispatch } = useContext(AppContext);
   const productId = state.pageData?.productId;
-  const product =
-    (state.adminProducts || PRODUCTS).find((p) => p.id === productId) ||
-    (state.adminProducts || PRODUCTS)[0];
+  const products = state.adminProducts && state.adminProducts.length > 0 ? state.adminProducts : state.products;
+  const [product, setProduct] = useState(() =>
+    products.find((p) => p.id === productId) || null,
+  );
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState("desc");
   const [comment, setComment] = useState("");
@@ -42,10 +43,90 @@ export function ProductDetailPage() {
       ],
     },
   ]);
+  const [loading, setLoading] = useState(!product);
+  const [loadError, setLoadError] = useState(null);
 
-  const related = (state.adminProducts || PRODUCTS)
-    .filter((p) => p.catId === product.catId && p.id !== product.id)
+  useEffect(() => {
+    let cancelled = false;
+    const current = products.find((p) => p.id === productId);
+    if (current) {
+      setProduct(current);
+      setLoading(false);
+      setLoadError(null);
+      return;
+    }
+
+    async function fetchProduct() {
+      if (!productId) {
+        setProduct(null);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const detail = await productService.getProductDetails(productId);
+        if (!cancelled) {
+          setProduct(detail);
+          setLoadError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setProduct(null);
+          setLoadError(err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchProduct();
+    return () => {
+      cancelled = true;
+    };
+  }, [productId, products]);
+
+  const related = products
+    .filter((p) => p.catId === product?.catId && p.id !== product?.id)
     .slice(0, 4);
+
+  if (loading) {
+    return (
+      <div className="page product-detail-page">
+        <div className="page-header">
+          <div className="page-header-inner">
+            <h1 className="page-title">Đang tải sản phẩm...</h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product || loadError) {
+    return (
+      <div className="page product-detail-page">
+        <div className="page-header">
+          <div className="page-header-inner">
+            <h1 className="page-title">
+              {loadError ? 'Lỗi khi tải sản phẩm' : 'Sản phẩm không tồn tại'}
+            </h1>
+          </div>
+        </div>
+        <div className="page-content">
+          <div className="error-section">
+            <p>
+              {loadError
+                ? 'Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.'
+                : 'Xin lỗi, sản phẩm này không tồn tại hoặc đã bị xóa.'}
+            </p>
+            <button className="btn btn-primary" onClick={() => nav("products")}>← Quay lại sản phẩm</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const nav = (page, data) => {
     dispatch({ type: "SET_PAGE", page, data });
     window.scrollTo(0, 0);

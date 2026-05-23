@@ -1,9 +1,6 @@
 import { createContext } from 'react';
-import { ORDERS_MOCK, PRODUCTS, DEFAULT_BOT_RESPONSE } from '../data/mockData';
 
 export const AppContext = createContext();
-
-
 
 export const initialState = {
   user: null,
@@ -13,21 +10,31 @@ export const initialState = {
   pageData: null,
   searchQuery: '',
   toasts: [],
+
+  products: [],
+  categories: [],
+  blogs: [],
+
   chatOpen: false,
   chatTab: 'bot',
-  chatMessages: [{ from:'bot', text: DEFAULT_BOT_RESPONSE, type:'TEXT', products:[] }],
+  chatMessages: [{ from: 'bot', text: '🤖 Xin chào! Tôi là TechBot của TechZone. Hãy hỏi về sản phẩm hoặc đơn hàng.', type: 'TEXT', products: [] }],
+
   wishlist: [],
-  orders: ORDERS_MOCK,
+  orders: [],
+
+  // coupons giữ nguyên vì hiện chưa có API coupons/discount flow trong FE source
   coupons: [
     { code:'TECHZONE10', type:'percent', value:10, min:500000, label:'Giảm 10%', used:234, limit:1000, active:true, expiry:'2024-03-31' },
     { code:'NEWUSER50K', type:'fixed', value:50000, min:200000, label:'Giảm 50.000đ', used:89, limit:500, active:true, expiry:'2024-02-28' },
     { code:'MOMO15', type:'percent', value:15, min:1000000, label:'Giảm 15% thanh toán MoMo', used:167, limit:300, active:true, expiry:'2024-02-15' },
     { code:'FREESHIP', type:'ship', value:0, min:0, label:'Miễn phí vận chuyển', used:445, limit:2000, active:true, expiry:'2024-12-31' },
   ],
+
   adminTab: 'dashboard',
   recentlyViewed: [],
   compareList: [],
-  adminProducts: [...PRODUCTS],
+
+  adminProducts: [],
 };
 
 export function reducer(state, action) {
@@ -76,6 +83,10 @@ export function reducer(state, action) {
     case 'ADMIN_ADD_COUPON': return { ...state, coupons: [action.coupon, ...state.coupons] };
     case 'ADMIN_UPDATE_COUPON': return { ...state, coupons: state.coupons.map(c => c.code === action.coupon.code ? action.coupon : c) };
     case 'ADMIN_DELETE_COUPON': return { ...state, coupons: state.coupons.filter(c => c.code !== action.code) };
+    case 'SET_PRODUCTS': return { ...state, products: action.products };
+    case 'SET_CATEGORIES': return { ...state, categories: action.categories };
+    case 'SET_BLOGS': return { ...state, blogs: action.blogs };
+    case 'SET_ADMIN_PRODUCTS': return { ...state, adminProducts: action.products };
     default: return state;
   }
 }

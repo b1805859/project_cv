@@ -1,0 +1,131 @@
+.admin-create-tab {
+  .create-header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .type-selector {
+    display: flex;
+    gap: 8px;
+    background: var(--card2);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .type-btn {
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: 0.2s;
+    background: transparent;
+    border: none;
+  }
+
+  .type-btn.active {
+    background: var(--card);
+    color: var(--accent);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .form-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .form-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drag-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    transition: 0.2s;
+    cursor: pointer;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .drag-drop-zone:hover {
+    border-color: var(--accent);
+    background: rgba(0, 212, 255, 0.05);
+  }
+
+  .drag-drop-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .rich-text-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  .toolbar-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+
+  .toolbar-btn:hover {
+    background: var(--surface);
+    color: #fff;
+  }
+
+  .rich-text-editor {
+    border: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    min-height: 200px;
+    padding: 16px;
+    background: var(--card2);
+    color: var(--text);
+    outline: none;
+  }
+
+  .rich-text-editor:empty:before {
+    content: attr(placeholder);
+    color: var(--muted);
+  }
+}

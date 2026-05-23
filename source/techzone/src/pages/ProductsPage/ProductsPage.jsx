@@ -1,23 +1,35 @@
-import { useState, useEffect, useContext } from "react";
-import { CATEGORIES, PRODUCTS } from "../../data/mockData";
+import { useEffect, useState, useContext } from "react";
 import { AppContext } from "../../context/AppContext";
+import { productService } from "../../services/productService";
+import { categoryService } from "../../services/categoryService";
 import { formatPrice, stars } from "../../utils/helpers";
 import { ProductCard } from "../../components/ProductCard/ProductCard";
 import "./ProductsPage.scss";
 
 export function ProductsPage() {
-  const { state, dispatch } = useContext(AppContext);
+  const { dispatch, state } = useContext(AppContext);
+
   const [sort, setSort] = useState("default");
   const [search, setSearch] = useState(state.searchQuery || "");
+  const [searchDebounced, setSearchDebounced] = useState(search);
+
   const [selectedCat, setSelectedCat] = useState(state.pageData?.catId || 0);
+
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [searchDebounced, setSearchDebounced] = useState(search);
+
+  // API /items only supports single brand param
+  const [selectedBrand, setSelectedBrand] = useState("");
+
+  const [minRating, setMinRating] = useState(0);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' | 'list'
   const [page, setPage] = useState(1);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [minRating, setMinRating] = useState(0);
+
   const PER_PAGE = 8;
+
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setSearchDebounced(search), 300);
@@ -25,63 +37,87 @@ export function ProductsPage() {
   }, [search]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    (async () => {
+      try {
+        const list = await categoryService.getCategories(products);
+        setCategories(list);
+      } catch {
+        setCategories([]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // reset pagination when filters change
     setPage(1);
-  }, [
-    selectedCat,
-    searchDebounced,
-    sort,
-    priceMin,
-    priceMax,
-    selectedBrands,
-    minRating,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCat, searchDebounced, sort, priceMin, priceMax, selectedBrand, minRating]);
 
-  let products = [...PRODUCTS];
-  if (selectedCat) products = products.filter((p) => p.catId === selectedCat);
-  if (searchDebounced)
-    products = products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(searchDebounced.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchDebounced.toLowerCase()) ||
-        p.brand.toLowerCase().includes(searchDebounced.toLowerCase()),
-    );
-  if (priceMin)
-    products = products.filter((p) => p.price >= Number(priceMin) * 1000000);
-  if (priceMax)
-    products = products.filter((p) => p.price <= Number(priceMax) * 1000000);
-  if (selectedBrands.length > 0)
-    products = products.filter((p) => selectedBrands.includes(p.brand));
-  if (minRating > 0) products = products.filter((p) => p.rating >= minRating);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const params = {
+          keyword: searchDebounced || undefined,
+          categoryId: selectedCat ? String(selectedCat) : undefined,
+          brand: selectedBrand || undefined,
+        };
 
-  if (sort === "price_asc") products.sort((a, b) => a.price - b.price);
-  else if (sort === "price_desc") products.sort((a, b) => b.price - a.price);
-  else if (sort === "name_asc")
-    products.sort((a, b) => a.name.localeCompare(b.name));
-  else if (sort === "name_desc")
-    products.sort((a, b) => b.name.localeCompare(a.name));
-  else if (sort === "sold_desc") products.sort((a, b) => b.sold - a.sold);
-  else if (sort === "rating") products.sort((a, b) => b.rating - a.rating);
-  else if (sort === "new")
-    products.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+        const list = await productService.getProductsList(params);
 
-  const totalPages = Math.ceil(products.length / PER_PAGE);
+        // client-side post filters for values backend may not support in query
+        let filtered = list;
+        if (priceMin) filtered = filtered.filter((p) => p.price >= Number(priceMin) * 1000000);
+        if (priceMax) filtered = filtered.filter((p) => p.price <= Number(priceMax) * 1000000);
+        if (minRating > 0) filtered = filtered.filter((p) => p.rating >= minRating);
+
+        if (sort === "price_asc") filtered.sort((a, b) => a.price - b.price);
+        else if (sort === "price_desc") filtered.sort((a, b) => b.price - a.price);
+        else if (sort === "name_asc") filtered.sort((a, b) => a.name.localeCompare(b.name));
+        else if (sort === "name_desc") filtered.sort((a, b) => b.name.localeCompare(a.name));
+        else if (sort === "sold_desc") filtered.sort((a, b) => b.sold - a.sold);
+        else if (sort === "rating") filtered.sort((a, b) => b.rating - a.rating);
+        else if (sort === "new") filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+
+        if (mounted) {
+          setProducts(filtered);
+          // refresh category counts based on current products
+          categoryService.getCategories(filtered).then((cats) => {
+            if (mounted) setCategories(cats);
+          });
+        }
+      } catch {
+        if (mounted) setProducts([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedCat, searchDebounced, sort, priceMin, priceMax, selectedBrand, minRating]);
+
+  const allBrands = Array.from(new Set((products || []).map((p) => p.brand).filter(Boolean)));
+
+  const totalPages = Math.max(1, Math.ceil(products.length / PER_PAGE));
   const paginated = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const allBrands = [...new Set(PRODUCTS.map((p) => p.brand))];
 
   function resetAll() {
     setSelectedCat(0);
     setPriceMin("");
     setPriceMax("");
     setSort("default");
-    setSelectedBrands([]);
+    setSelectedBrand("");
     setMinRating(0);
     setSearch("");
   }
+
   const activeFilterCount =
     (selectedCat ? 1 : 0) +
     (priceMin || priceMax ? 1 : 0) +
-    selectedBrands.length +
+    (selectedBrand ? 1 : 0) +
     (minRating ? 1 : 0);
 
   return (
@@ -89,15 +125,13 @@ export function ProductsPage() {
       <div className="page-header">
         <div className="page-header-inner">
           <div className="breadcrumb">
-            <span
-              onClick={() => dispatch({ type: "SET_PAGE", page: "home" })}
-              style={{ cursor: "pointer", color: "var(--accent)" }}
-            >
+            <span onClick={() => dispatch({ type: "SET_PAGE", page: "home" })} style={{ cursor: "pointer", color: "var(--accent)" }}>
               Trang chủ
             </span>
             <span className="breadcrumb-sep">/</span>
             <span>Sản phẩm</span>
           </div>
+
           <div
             style={{
               display: "flex",
@@ -110,14 +144,7 @@ export function ProductsPage() {
             <h1 className="page-title">🛍️ Tất cả sản phẩm</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {activeFilterCount > 0 && (
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "var(--accent)",
-                    cursor: "pointer",
-                  }}
-                  onClick={resetAll}
-                >
+                <span style={{ fontSize: 12, color: "var(--accent)", cursor: "pointer" }} onClick={resetAll}>
                   ✕ Xóa {activeFilterCount} bộ lọc
                 </span>
               )}
@@ -125,17 +152,14 @@ export function ProductsPage() {
           </div>
         </div>
       </div>
+
       <div className="product-list-layout">
-        {/* FILTER PANEL */}
         <aside className="filter-panel">
           <div className="filter-title">
             <span>
               🔧 Bộ lọc{" "}
               {activeFilterCount > 0 && (
-                <span
-                  className="badge badge-cyan"
-                  style={{ fontSize: 9, padding: "1px 6px", marginLeft: 4 }}
-                >
+                <span className="badge badge-cyan" style={{ fontSize: 9, padding: "1px 6px", marginLeft: 4 }}>
                   {activeFilterCount}
                 </span>
               )}
@@ -147,80 +171,46 @@ export function ProductsPage() {
 
           <div className="filter-section">
             <div className="filter-section-title">Danh mục</div>
-            {[{ id: 0, name: "Tất cả", icon: "📦" }, ...CATEGORIES].map(
-              (cat) => (
-                <label
-                  key={cat.id}
-                  className="filter-option"
-                  style={{
-                    background:
-                      selectedCat === cat.id ? "rgba(0,212,255,.06)" : "",
-                    borderRadius: 6,
-                    paddingLeft: 6,
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="cat"
-                    checked={selectedCat === cat.id}
-                    onChange={() => setSelectedCat(cat.id)}
-                    style={{ accentColor: "var(--accent)" }}
-                  />
-                  <span style={{ fontSize: 14 }}>{cat.icon || ""}</span>
-                  <span
-                    style={{
-                      fontWeight: selectedCat === cat.id ? 600 : 400,
-                      color:
-                        selectedCat === cat.id ? "var(--accent)" : "inherit",
-                    }}
-                  >
-                    {cat.name}
-                  </span>
-                </label>
-              ),
-            )}
+            {[{ id: 0, name: "Tất cả", icon: "📦" }, ...categories].map((cat) => (
+              <label
+                key={cat.id}
+                className="filter-option"
+                style={{
+                  background: selectedCat === cat.id ? "rgba(0,212,255,.06)" : "",
+                  borderRadius: 6,
+                  paddingLeft: 6,
+                }}
+              >
+                <input
+                  type="radio"
+                  name="cat"
+                  checked={selectedCat === cat.id}
+                  onChange={() => setSelectedCat(cat.id)}
+                  style={{ accentColor: "var(--accent)" }}
+                />
+                <span style={{ fontSize: 14 }}>{cat.icon || ""}</span>
+                <span style={{ fontWeight: selectedCat === cat.id ? 600 : 400, color: selectedCat === cat.id ? "var(--accent)" : "inherit" }}>
+                  {cat.name}
+                </span>
+              </label>
+            ))}
           </div>
 
           <div className="filter-section">
             <div className="filter-section-title">Khoảng giá (triệu đồng)</div>
             <div className="price-range">
-              <input
-                className="price-input"
-                placeholder="Từ"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-              />
+              <input className="price-input" placeholder="Từ" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
               <span style={{ color: "var(--muted)" }}>–</span>
-              <input
-                className="price-input"
-                placeholder="Đến"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-              />
+              <input className="price-input" placeholder="Đến" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                marginTop: 8,
-                flexWrap: "wrap",
-              }}
-            >
+            <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
               {[
                 ["<2M", "", "2"],
                 ["2-10M", "2", "10"],
                 ["10-30M", "10", "30"],
                 [">30M", "30", ""],
               ].map(([label, mn, mx]) => (
-                <button
-                  key={label}
-                  className="sort-btn"
-                  style={{ fontSize: 10, padding: "3px 8px" }}
-                  onClick={() => {
-                    setPriceMin(mn);
-                    setPriceMax(mx);
-                  }}
-                >
+                <button key={label} className="sort-btn" style={{ fontSize: 10, padding: "3px 8px" }} onClick={() => { setPriceMin(mn); setPriceMax(mx); }}>
                   {label}
                 </button>
               ))}
@@ -228,37 +218,20 @@ export function ProductsPage() {
           </div>
 
           <div className="filter-section">
-            <div className="filter-section-title">
-              Thương hiệu (
-              {selectedBrands.length > 0
-                ? selectedBrands.length + " chọn"
-                : "Tất cả"}
-              )
-            </div>
+            <div className="filter-section-title">Thương hiệu (1 chọn)</div>
+            {allBrands.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--muted)" }}>Chọn danh mục để xem thương hiệu</div>
+            ) : (
+              <label className="filter-option" style={{ opacity: selectedBrand ? 0.8 : 1 }}>
+                <input type="radio" name="brand" checked={!selectedBrand} onChange={() => setSelectedBrand("")} style={{ accentColor: "var(--accent)" }} />
+                <span>Tất cả</span>
+              </label>
+            )}
+
             {allBrands.map((brand) => (
               <label key={brand} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedBrands.includes(brand)}
-                  onChange={(e) =>
-                    setSelectedBrands((prev) =>
-                      e.target.checked
-                        ? [...prev, brand]
-                        : prev.filter((b) => b !== brand),
-                    )
-                  }
-                  style={{ accentColor: "var(--accent)" }}
-                />
+                <input type="radio" name="brand" checked={selectedBrand === brand} onChange={() => setSelectedBrand(brand)} style={{ accentColor: "var(--accent)" }} />
                 <span>{brand}</span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: "var(--muted)",
-                    marginLeft: "auto",
-                  }}
-                >
-                  {PRODUCTS.filter((p) => p.brand === brand).length}
-                </span>
               </label>
             ))}
           </div>
@@ -267,190 +240,69 @@ export function ProductsPage() {
             <div className="filter-section-title">Đánh giá tối thiểu</div>
             {[5, 4.5, 4, 3.5].map((r) => (
               <label key={r} className="filter-option">
-                <input
-                  type="radio"
-                  name="rating"
-                  checked={minRating === r}
-                  onChange={() => setMinRating(minRating === r ? 0 : r)}
-                  style={{ accentColor: "var(--accent)" }}
-                />
+                <input type="radio" name="rating" checked={minRating === r} onChange={() => setMinRating(minRating === r ? 0 : r)} style={{ accentColor: "var(--accent)" }} />
                 <span className="stars" style={{ fontSize: 11 }}>
                   {"★".repeat(Math.floor(r))}
                   {"½".repeat(r % 1 ? 1 : 0)}
                   {"☆".repeat(5 - Math.ceil(r))}
                 </span>
-                <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                  {r}+
-                </span>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>{r}+</span>
               </label>
             ))}
           </div>
         </aside>
 
-        {/* PRODUCTS AREA */}
         <div>
-          {/* Search bar */}
           <div style={{ marginBottom: 16 }}>
             <div className="input-group">
               <span className="input-icon">🔍</span>
-              <input
-                className="input"
-                placeholder="Tìm kiếm trong sản phẩm..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <input className="input" placeholder="Tìm kiếm trong sản phẩm..." value={search} onChange={(e) => setSearch(e.target.value)} />
               {search && (
-                <span
-                  style={{
-                    position: "absolute",
-                    right: 12,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    cursor: "pointer",
-                    color: "var(--muted)",
-                    fontSize: 16,
-                  }}
-                  onClick={() => setSearch("")}
-                >
-                  ×
-                </span>
+                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--muted)", fontSize: 16 }} onClick={() => setSearch("")}>×</span>
               )}
             </div>
           </div>
 
-          {/* Active filter chips */}
           {activeFilterCount > 0 && (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                flexWrap: "wrap",
-                marginBottom: 14,
-              }}
-            >
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
               {selectedCat > 0 && (
-                <span
-                  style={{
-                    padding: "4px 10px",
-                    background: "rgba(0,212,255,.1)",
-                    border: "1px solid rgba(0,212,255,.3)",
-                    borderRadius: 20,
-                    fontSize: 11,
-                    color: "var(--accent)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  {CATEGORIES.find((c) => c.id === selectedCat)?.name}
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setSelectedCat(0)}
-                  >
-                    ×
-                  </span>
+                <span style={{ padding: "4px 10px", background: "rgba(0,212,255,.1)", border: "1px solid rgba(0,212,255,.3)", borderRadius: 20, fontSize: 11, color: "var(--accent)", display: "flex", alignItems: "center", gap: 5 }}>
+                  {categories.find((c) => c.id === selectedCat)?.name}
+                  <span style={{ cursor: "pointer" }} onClick={() => setSelectedCat(0)}>×</span>
                 </span>
               )}
-              {selectedBrands.map((b) => (
-                <span
-                  key={b}
-                  style={{
-                    padding: "4px 10px",
-                    background: "rgba(0,212,255,.1)",
-                    border: "1px solid rgba(0,212,255,.3)",
-                    borderRadius: 20,
-                    fontSize: 11,
-                    color: "var(--accent)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  {b}
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() =>
-                      setSelectedBrands((prev) => prev.filter((x) => x !== b))
-                    }
-                  >
-                    ×
-                  </span>
+              {selectedBrand && (
+                <span style={{ padding: "4px 10px", background: "rgba(0,212,255,.1)", border: "1px solid rgba(0,212,255,.3)", borderRadius: 20, fontSize: 11, color: "var(--accent)", display: "flex", alignItems: "center", gap: 5 }}>
+                  {selectedBrand}
+                  <span style={{ cursor: "pointer" }} onClick={() => setSelectedBrand("")}>×</span>
                 </span>
-              ))}
+              )}
               {(priceMin || priceMax) && (
-                <span
-                  style={{
-                    padding: "4px 10px",
-                    background: "rgba(0,212,255,.1)",
-                    border: "1px solid rgba(0,212,255,.3)",
-                    borderRadius: 20,
-                    fontSize: 11,
-                    color: "var(--accent)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  {priceMin ? priceMin + "M" : ""}
-                  {priceMin && priceMax ? "–" : ""}
-                  {priceMax ? priceMax + "M" : ""}
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setPriceMin("");
-                      setPriceMax("");
-                    }}
-                  >
-                    ×
-                  </span>
+                <span style={{ padding: "4px 10px", background: "rgba(0,212,255,.1)", border: "1px solid rgba(0,212,255,.3)", borderRadius: 20, fontSize: 11, color: "var(--accent)", display: "flex", alignItems: "center", gap: 5 }}>
+                  {priceMin ? priceMin + "M" : ""}{priceMin && priceMax ? "–" : ""}{priceMax ? priceMax + "M" : ""}
+                  <span style={{ cursor: "pointer" }} onClick={() => { setPriceMin(""); setPriceMax(""); }}>×</span>
                 </span>
               )}
               {minRating > 0 && (
-                <span
-                  style={{
-                    padding: "4px 10px",
-                    background: "rgba(0,212,255,.1)",
-                    border: "1px solid rgba(0,212,255,.3)",
-                    borderRadius: 20,
-                    fontSize: 11,
-                    color: "var(--accent)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  ⭐{minRating}+
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setMinRating(0)}
-                  >
-                    ×
-                  </span>
+                <span style={{ padding: "4px 10px", background: "rgba(0,212,255,.1)", border: "1px solid rgba(0,212,255,.3)", borderRadius: 20, fontSize: 11, color: "var(--accent)", display: "flex", alignItems: "center", gap: 5 }}>
+                  ⭐{minRating}+ 
+                  <span style={{ cursor: "pointer" }} onClick={() => setMinRating(0)}>×</span>
                 </span>
               )}
             </div>
           )}
 
-          {/* Sort bar + View toggle */}
           <div className="sort-bar">
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div className="result-count">
-                <strong>{products.length}</strong> sản phẩm
-                {totalPages > 1 && (
-                  <span style={{ color: "var(--muted)", marginLeft: 6 }}>
-                    · Trang {page}/{totalPages}
-                  </span>
+                <strong>{loading ? 0 : products.length}</strong> sản phẩm
+                {products.length > 0 && totalPages > 1 && (
+                  <span style={{ color: "var(--muted)", marginLeft: 6 }}>· Trang {page}/{totalPages}</span>
                 )}
               </div>
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
+
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <div className="sort-options">
                 {[
                   ["default", "Mặc định"],
@@ -460,30 +312,14 @@ export function ProductsPage() {
                   ["rating", "Đánh giá"],
                   ["new", "Mới nhất"],
                 ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    className={`sort-btn${sort === v ? " active" : ""}`}
-                    onClick={() => setSort(v)}
-                  >
+                  <button key={v} className={`sort-btn${sort === v ? " active" : ""}`} onClick={() => setSort(v)}>
                     {l}
                   </button>
                 ))}
               </div>
-              {/* View mode toggle */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: 4,
-                  background: "var(--card2)",
-                  borderRadius: 8,
-                  padding: 3,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                {[
-                  ["grid", "⊞"],
-                  ["list", "☰"],
-                ].map(([mode, icon]) => (
+
+              <div style={{ display: "flex", gap: 4, background: "var(--card2)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
+                {[["grid", "⊞"], ["list", "☰"]].map(([mode, icon]) => (
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
@@ -491,8 +327,7 @@ export function ProductsPage() {
                       width: 30,
                       height: 28,
                       borderRadius: 6,
-                      background:
-                        viewMode === mode ? "var(--accent)" : "transparent",
+                      background: viewMode === mode ? "var(--accent)" : "transparent",
                       color: viewMode === mode ? "#000" : "var(--muted2)",
                       border: "none",
                       cursor: "pointer",
@@ -510,18 +345,17 @@ export function ProductsPage() {
             </div>
           </div>
 
-          {products.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">
+              <div className="empty-icon">⏳</div>
+              <div className="empty-text">Đang tải sản phẩm...</div>
+            </div>
+          ) : products.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🔍</div>
               <div className="empty-text">Không tìm thấy sản phẩm</div>
-              <div className="empty-sub">
-                Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
-              </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ marginTop: 12 }}
-                onClick={resetAll}
-              >
+              <div className="empty-sub">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</div>
+              <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={resetAll}>
                 Xóa tất cả bộ lọc
               </button>
             </div>
@@ -532,7 +366,6 @@ export function ProductsPage() {
               ))}
             </div>
           ) : (
-            /* LIST VIEW */
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {paginated.map((p) => (
                 <div
@@ -548,18 +381,10 @@ export function ProductsPage() {
                     cursor: "pointer",
                     transition: ".2s",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.borderColor = "rgba(0,212,255,.2)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.borderColor = "var(--border)")
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,212,255,.2)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
                   onClick={() => {
-                    dispatch({
-                      type: "SET_PAGE",
-                      page: "product",
-                      data: { productId: p.id },
-                    });
+                    dispatch({ type: "SET_PAGE", page: "product", data: { productId: p.id } });
                     window.scrollTo(0, 0);
                   }}
                 >
@@ -579,67 +404,20 @@ export function ProductsPage() {
                     {p.emoji}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--muted)",
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5,
-                        marginBottom: 2,
-                      }}
-                    >
+                    <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>
                       {p.category} · {p.brand}
                     </div>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 15,
-                        marginBottom: 4,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {p.name}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span className="stars" style={{ fontSize: 11 }}>
-                        {stars(p.rating)}
-                      </span>
-                      <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                        ({p.reviews}) · Đã bán {p.sold.toLocaleString()}
-                      </span>
+                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4, lineHeight: 1.3 }}>{p.name}</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span className="stars" style={{ fontSize: 11 }}>{stars(p.rating)}</span>
+                      <span style={{ fontSize: 11, color: "var(--muted)" }}>({p.reviews}) · Đã bán {p.sold.toLocaleString()}</span>
                       {p.isNew && <span className="label label-new">MỚI</span>}
                       {p.isHot && <span className="label label-hot">🔥</span>}
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-head)",
-                        fontSize: 18,
-                        fontWeight: 800,
-                        color: "var(--accent)",
-                      }}
-                    >
-                      {formatPrice(p.price)}
-                    </div>
-                    {p.oldPrice && (
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "var(--muted)",
-                          textDecoration: "line-through",
-                        }}
-                      >
-                        {formatPrice(p.oldPrice)}
-                      </div>
-                    )}
+                    <div style={{ fontFamily: "var(--font-head)", fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{formatPrice(p.price)}</div>
+                    {p.oldPrice && <div style={{ fontSize: 12, color: "var(--muted)", textDecoration: "line-through" }}>{formatPrice(p.oldPrice)}</div>}
                     <button
                       className="btn btn-primary btn-sm"
                       style={{ marginTop: 8 }}
@@ -648,11 +426,7 @@ export function ProductsPage() {
                         dispatch({ type: "ADD_TO_CART", product: p });
                         dispatch({
                           type: "ADD_TOAST",
-                          toast: {
-                            type: "success",
-                            title: "Đã thêm!",
-                            msg: p.name,
-                          },
+                          toast: { type: "success", title: "Đã thêm!", msg: p.name },
                         });
                       }}
                     >
@@ -664,8 +438,7 @@ export function ProductsPage() {
             </div>
           )}
 
-          {/* PAGINATION */}
-          {totalPages > 1 && (
+          {products.length > 0 && totalPages > 1 && (
             <div
               style={{
                 display: "flex",
@@ -676,12 +449,7 @@ export function ProductsPage() {
                 flexWrap: "wrap",
               }}
             >
-              <button
-                className="btn btn-ghost btn-sm"
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                style={{ opacity: page === 1 ? 0.4 : 1 }}
-              >
+              <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} style={{ opacity: page === 1 ? 0.4 : 1 }}>
                 ← Trước
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
@@ -707,12 +475,7 @@ export function ProductsPage() {
                   {pg}
                 </button>
               ))}
-              <button
-                className="btn btn-ghost btn-sm"
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                style={{ opacity: page === totalPages ? 0.4 : 1 }}
-              >
+              <button className="btn btn-ghost btn-sm" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} style={{ opacity: page === totalPages ? 0.4 : 1 }}>
                 Sau →
               </button>
             </div>
@@ -722,3 +485,4 @@ export function ProductsPage() {
     </div>
   );
 }
+

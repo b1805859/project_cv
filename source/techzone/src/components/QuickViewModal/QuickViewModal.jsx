@@ -1,12 +1,12 @@
 import { useState, useContext } from 'react';
-import { PRODUCTS } from '../../data/mockData';
 import { AppContext } from '../../context/AppContext';
 import { formatPrice, discount, stars } from '../../utils/helpers';
 import "./QuickViewModal.scss";
 
 export function QuickViewModal({ productId, onClose }) {
-  const { dispatch } = useContext(AppContext);
-  const product = PRODUCTS.find(p=>p.id===productId);
+  const { state, dispatch } = useContext(AppContext);
+  const products = state.adminProducts && state.adminProducts.length > 0 ? state.adminProducts : state.products;
+  const product = products.find((p) => p.id === productId);
   const [qty, setQty] = useState(1);
   if (!product) return null;
 

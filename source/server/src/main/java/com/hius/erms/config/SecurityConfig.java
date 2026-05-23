@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -40,8 +41,11 @@ public class SecurityConfig {
                                                 auth -> auth.requestMatchers("/auth/login",
                                                                 "/auth/encode",
                                                                 "/auth/register").permitAll()
-                                                                .requestMatchers("/categories", "/items", "/orders",
-                                                                                "/files", "/momo")
+                                                                .requestMatchers(HttpMethod.GET, "/items/**", "/categories/**", "/blogs/**").permitAll()
+                                                                .requestMatchers("/orders",
+                                                                                "/files", "/momo",
+                                                                                "/notifications/**",
+                                                                                "/chat/**")
                                                                 .hasAnyRole("USER", "ADMIN")
                                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                                                 .anyRequest().authenticated())

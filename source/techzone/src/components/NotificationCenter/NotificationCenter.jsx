@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { AppContext } from "../../context/AppContext";
-import { NOTIFS_INIT } from "../../data/mockData";
+import { notificationService } from "../../services/notificationService";
 import "./NotificationCenter.scss";
 
 export function NotificationCenter() {
   const { dispatch } = useContext(AppContext);
   const [open, setOpen] = useState(false);
-  const [notifs, setNotifs] = useState(NOTIFS_INIT);
+  const [notifs, setNotifs] = useState([]);
+
   const ref = useRef();
   const unread = notifs.filter((n) => n.unread).length;
   
@@ -23,8 +24,30 @@ export function NotificationCenter() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  function markAll() {
-    setNotifs((ns) => ns.map((n) => ({ ...n, unread: false })));
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await notificationService.getNotifications();
+        if (mounted) setNotifs(data);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function markAll() {
+    try {
+      await notificationService.markAllAsRead();
+    } finally {
+      setNotifs((ns) => ns.map((n) => ({ ...n, unread: false })));
+    }
   }
 
   return (
