@@ -58,6 +58,8 @@ export const productService = {
       stock: toNumber(item.stock ?? item.quantity ?? item.availableQuantity),
       brand: item.brandName ?? item.brand ?? "",
       imageUrl: item.imgUrl ?? item.imageUrl ?? "",
+      images: item.images ?? item.imageUrls ?? (item.imgUrl || item.imageUrl ? [item.imgUrl ?? item.imageUrl] : []),
+      videoUrl: item.videoUrl ?? item.video ?? null,
       emoji: item.emoji ?? item.icon ?? "\uD83D\uDCE6",
       isNew: Boolean(item.isNew),
       isHot: Boolean(item.isHot),
@@ -82,6 +84,8 @@ export const productService = {
       ...productData,
       categoryId: productData.categoryId ?? productData.catId,
       specs: productData.specs ? JSON.stringify(productData.specs) : null,
+      images: productData.images ?? (productData.imageUrl ? [productData.imageUrl] : undefined),
+      videoUrl: productData.videoUrl ?? productData.video ?? null,
     };
 
     let response;

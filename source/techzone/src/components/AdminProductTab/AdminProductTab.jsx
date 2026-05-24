@@ -97,7 +97,20 @@ export function AdminProductTab() {
               <tr key={p.id}>
                 <td>
                   <div className="product-cell">
-                    <span className="emoji">{p.emoji}</span>
+                    {(() => {
+                      const src = (p.images && p.images.length>0) ? p.images[0] : (p.image || p.imageUrl || p.img || p.thumbnail);
+                      if (src) {
+                        return <img src={src} alt={p.name} className="product-thumb" />;
+                      }
+                      return (
+                        <div className="product-placeholder" aria-hidden>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 7H5L7 4H17L19 7H21V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M12 15A3 3 0 1 0 12 9A3 3 0 0 0 12 15Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        </div>
+                      );
+                    })()}
                     <div>
                       <div className="name">{p.name}</div>
                       <div className="brand">{p.brand}</div>

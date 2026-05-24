@@ -10,6 +10,18 @@ const httpClient = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed(token) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
 // Request Interceptor: Auto-attach Bearer token if it exists
 httpClient.interceptors.request.use(
   (config) => {
@@ -46,6 +58,8 @@ httpClient.interceptors.response.use(
       code: "NETWORK_ERROR",
     };
 
+    const originalRequest = error.config;
+
     if (error.response) {
       const serverResponse = error.response.data;
       normalizedError = {
@@ -54,13 +68,53 @@ httpClient.interceptors.response.use(
         code: serverResponse?.code || "SERVER_ERROR",
       };
 
-      // Redirect or log out if unauthorized
-      if (error.response.status === 401) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("currentUser");
-        window.dispatchEvent(new Event("auth_session_expired"));
+      // Try refresh flow on 401
+      if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            subscribeTokenRefresh((token) => {
+              if (token) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(httpClient(originalRequest));
+              } else {
+                reject(normalizedError);
+              }
+            });
+          });
+        }
+
+        isRefreshing = true;
+
+        return axios.post("/auth/refresh", {}, { baseURL: httpClient.defaults.baseURL, withCredentials: true })
+          .then((res) => {
+            const newToken = res.data?.data?.token;
+            if (newToken) {
+              localStorage.setItem("accessToken", newToken);
+              onRefreshed(newToken);
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              return httpClient(originalRequest);
+            }
+            // fallback: clear session
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("currentUser");
+            window.dispatchEvent(new Event("auth_session_expired"));
+            return Promise.reject(normalizedError);
+          })
+          .catch((err) => {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("currentUser");
+            window.dispatchEvent(new Event("auth_session_expired"));
+            onRefreshed(null);
+            return Promise.reject(err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
       }
     }
+
     return Promise.reject(normalizedError);
   },
 );

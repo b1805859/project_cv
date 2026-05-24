@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
 @RequiredArgsConstructor
@@ -31,12 +32,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String email = null;
         String jwt = null;
 
-        if (authorizationHeader != null &&
-                authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            email = jwtUtil.extractUsername(jwt);
+                if (authorizationHeader != null &&
+                                authorizationHeader.startsWith("Bearer ")) {
+                        jwt = authorizationHeader.substring(7);
+                        try {
+                                email = jwtUtil.extractUsername(jwt);
+                        } catch (ExpiredJwtException ex) {
+                                // token expired — do not set authentication here. Let controllers or refresh endpoint handle it.
+                        }
 
-        }
+                }
 
         if (email != null &
                 SecurityContextHolder.getContext().getAuthentication() ==

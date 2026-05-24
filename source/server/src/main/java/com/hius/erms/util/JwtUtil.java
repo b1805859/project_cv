@@ -27,10 +27,19 @@ public class JwtUtil {
     @Value("${jwt.allowed.clock.skew.seconds:120}")
     private long allowedClockSkewSeconds;
 
+    @Value("${jwt.refresh.expiration.minutes:10080}")
+    private long jwtRefreshExpirationMinutes;
+
     public String generateToken(
             UserDetails userDetails) { // Use email as username
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername());
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        return createRefreshToken(claims, userDetails.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String email) {
@@ -43,6 +52,17 @@ public class JwtUtil {
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
+        private String createRefreshToken(Map<String, Object> claims, String email) {
+        return Jwts.builder()
+            .setClaims(claims)
+            .setSubject(email)
+            .setIssuedAt(new Date())
+            .setExpiration(
+                new Date(System.currentTimeMillis() + 1000 * 60 * jwtRefreshExpirationMinutes))
+            .signWith(getSignKey(), SignatureAlgorithm.HS256)
+            .compact();
+        }
 
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
@@ -80,6 +100,18 @@ public class JwtUtil {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) &&
                 !isTokenExpired(token));
+    }
+
+    public Boolean validateRefreshToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        Claims claims = extractAllClaims(token);
+        Object t = claims.get("type");
+        boolean isRefresh = t != null && "refresh".equals(t.toString());
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && isRefresh);
+    }
+
+    public int getRefreshTokenMaxAgeSeconds() {
+        return (int) (jwtRefreshExpirationMinutes * 60);
     }
 
 }

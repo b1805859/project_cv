@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import com.hius.erms.io.UserRequest;
 import com.hius.erms.io.UserResponse;
 import org.springframework.http.HttpStatus;
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -54,18 +58,35 @@ public class AuthController {
      * @return AuthResponse containing email, JWT token, and role
      */
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ApiResponse<AuthResponse> login(@RequestBody AuthRequest request, HttpServletResponse response) {
         authenticate(request.getEmail(), request.getPassword());
 
         UserDetails userDetails =
                 userDetailsService.loadUserByUsername(request.getEmail());
 
         String token = jwtUtil.generateToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         String role = userService.getUserRole(request.getEmail());
 
-        return ApiResponse.<AuthResponse>builder()
+        // Set refresh token as HttpOnly cookie
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(jwtUtil.getRefreshTokenMaxAgeSeconds());
+        // NOTE: enable secure in production when using HTTPS
+        cookie.setSecure(false);
+
+        // add cookie to response via thread-local hack: not available here, so return cookie via response
+        // Caller (controller method) can set cookie if HttpServletResponse injected. We'll set it below using response param if present.
+        // For simplicity, set cookie via a dedicated response-aware login method below by overloading.
+
+        // attach refresh token cookie
+        response.addCookie(cookie);
+
+        ApiResponse<AuthResponse> resp = ApiResponse.<AuthResponse>builder()
                 .data(new AuthResponse(request.getEmail(), token, role))
                 .build();
+        return resp;
     }
 
     /**
@@ -99,6 +120,52 @@ public class AuthController {
         } catch (BadCredentialsException ex) {
             throw new AppException(ErrorCode.EMAIL_OR_PASSWORD_IS_INCORRECT);
         }
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<AuthResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken,
+                                             HttpServletResponse response) {
+        if (refreshToken == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String email;
+        try {
+            email = jwtUtil.extractUsername(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        if (!jwtUtil.validateRefreshToken(refreshToken, userDetails)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String newAccessToken = jwtUtil.generateToken(userDetails);
+        // Optionally rotate refresh token
+        String newRefresh = jwtUtil.generateRefreshToken(userDetails);
+        Cookie cookie = new Cookie("refreshToken", newRefresh);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(jwtUtil.getRefreshTokenMaxAgeSeconds());
+        cookie.setSecure(false);
+        response.addCookie(cookie);
+
+        String role = userService.getUserRole(email);
+        return ApiResponse.<AuthResponse>builder()
+                .data(new AuthResponse(email, newAccessToken, role))
+                .build();
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(false);
+        response.addCookie(cookie);
+        return ApiResponse.<Void>builder().message("Logged out").build();
     }
 
     /**

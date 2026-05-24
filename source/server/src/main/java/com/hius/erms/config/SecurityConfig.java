@@ -40,7 +40,9 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(
                                                 auth -> auth.requestMatchers("/auth/login",
                                                                 "/auth/encode",
-                                                                "/auth/register").permitAll()
+                                                                "/auth/register",
+                                                                "/auth/refresh",
+                                                                "/auth/logout").permitAll()
                                                                 .requestMatchers(HttpMethod.GET, "/items/**", "/categories/**", "/blogs/**").permitAll()
                                                                 .requestMatchers("/orders",
                                                                                 "/files", "/momo",

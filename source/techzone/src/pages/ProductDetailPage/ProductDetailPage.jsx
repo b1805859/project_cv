@@ -6,6 +6,7 @@ import { Footer } from "../../components/Footer/Footer";
 import { RecentlyViewedStrip } from "../../components/RecentlyViewedStrip/RecentlyViewedStrip";
 import { productService } from "../../services/productService";
 import "./ProductDetailPage.scss";
+import ProductGallery from '../../components/ProductGallery/ProductGallery';
 
 export function ProductDetailPage() {
   const { state, dispatch } = useContext(AppContext);
@@ -208,25 +209,7 @@ export function ProductDetailPage() {
       <div className="product-detail-layout">
         {/* GALLERY */}
         <div className="product-gallery">
-          <div className="gallery-main">
-            <span style={{ fontSize: 120 }}>{product.emoji}</span>
-            <div style={{ position: "absolute", top: 12, right: 12 }}>
-              {product.isNew && <span className="badge badge-cyan">NEW</span>}
-              {product.isHot && (
-                <span className="badge badge-orange">🔥 HOT</span>
-              )}
-            </div>
-          </div>
-          <div className="gallery-thumbs">
-            {[product.emoji, "📦", "🏷️", "✨"].map((e, i) => (
-              <div
-                key={i}
-                className={`gallery-thumb${i === 0 ? " active" : ""}`}
-              >
-                {e}
-              </div>
-            ))}
-          </div>
+          <ProductGallery product={product} />
         </div>
 
         {/* INFO */}

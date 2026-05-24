@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { createPortal } from 'react-dom';
 import { AppContext } from "../../context/AppContext";
+import { authService } from "../../services/authService";
 import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import { LiveSearch } from "../LiveSearch/LiveSearch";
 import { NotificationCenter } from "../NotificationCenter/NotificationCenter";
@@ -206,6 +207,7 @@ export function NavbarV2() {
                   <div
                     className="user-drop-item logout"
                     onClick={() => {
+                      authService.handleLogout();
                       dispatch({ type: "LOGOUT" });
                       setDropOpen(false);
                       dispatch({

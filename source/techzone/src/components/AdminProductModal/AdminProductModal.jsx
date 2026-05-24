@@ -10,35 +10,55 @@ export function AdminProductModal({ product, onClose }) {
   const isEdit = !!product;
   const [form, setForm] = useState(() => product || {
     id: Date.now(), name:'', category:'Laptop', catId:1, price:'', oldPrice:'',
-    imageUrl: product?.imageUrl || product?.imgUrl || '', rating:4.5, reviews:0, emoji:'📦', sold:0, stock:10, brand:'',
+    imageUrl: product?.imageUrl || product?.imgUrl || '', images: product?.images || [], videoUrl: product?.videoUrl || '', rating:4.5, reviews:0, emoji:'📦', sold:0, stock:10, brand:'',
     specs:{}, description:'', isNew:false, isHot:false
   });
   const [specKey, setSpecKey] = useState('');
   const [specVal, setSpecVal] = useState('');
-  const [fileToUpload, setFileToUpload] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(product?.imageUrl || product?.imgUrl || '');
+  const [previewItems, setPreviewItems] = useState(() => {
+    if (product?.images && product.images.length > 0) {
+      return product.images.map((src, idx) => ({ id: `${Date.now()}-${idx}`, src, file: null }));
+    }
+    if (product?.imageUrl) {
+      return [{ id: `${Date.now()}-0`, src: product.imageUrl, file: null }];
+    }
+    return [];
+  });
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     return () => {
-      if (previewUrl?.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      // revoke any blob URLs created for previews
+      (previewItems || []).forEach(item => {
+        try {
+          if (item?.src && item.src.startsWith && item.src.startsWith('blob:')) {
+            URL.revokeObjectURL(item.src);
+          }
+        } catch {
+          // ignore preview URL cleanup errors
+        }
+      });
     };
-  }, [previewUrl]);
+  }, [previewItems]);
+
+  function createPreviewItem(source, file = null) {
+    return { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, src: source, file };
+  }
 
   function handleFileChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
-    if (previewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl);
+    const newItems = files.map(f => createPreviewItem(URL.createObjectURL(f), f));
+    setPreviewItems(prev => [...prev, ...newItems]);
+
+    if (event.target instanceof HTMLInputElement) {
+      event.target.value = '';
     }
-
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    setFileToUpload(file);
   }
 
   function handleDragEnter(event) {
@@ -63,15 +83,51 @@ export function AdminProductModal({ product, onClose }) {
     event.preventDefault();
     event.stopPropagation();
     setDragActive(false);
-    const file = event.dataTransfer.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.dataTransfer.files || []);
+    if (!files.length) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    if (previewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl);
+    const newItems = files.map(f => createPreviewItem(URL.createObjectURL(f), f));
+    setPreviewItems(prev => [...prev, ...newItems]);
+  }
+
+  function movePreviewItem(fromIndex, toIndex) {
+    setPreviewItems(prev => {
+      if (toIndex < 0 || toIndex >= prev.length) return prev;
+      const items = [...prev];
+      const [moved] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, moved);
+      return items;
+    });
+  }
+
+  function handleThumbDragStart(index, event) {
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggedIndex(index);
+  }
+
+  function handleThumbDragOver(index, event) {
+    event.preventDefault();
+    setDragOverIndex(index);
+  }
+
+  function handleThumbDragLeave(index) {
+    if (dragOverIndex === index) {
+      setDragOverIndex(null);
     }
-    setPreviewUrl(objectUrl);
-    setFileToUpload(file);
+  }
+
+  function handleThumbDrop(index, event) {
+    event.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      movePreviewItem(draggedIndex, index);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }
+
+  function handleThumbDragEnd() {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }
 
   async function save() {
@@ -82,22 +138,25 @@ export function AdminProductModal({ product, onClose }) {
 
     setSaving(true);
     try {
-      let imageUrl = form.imageUrl;
-      if (fileToUpload) {
-        const uploadResponse = await fileApi.uploadFile(fileToUpload);
-        const uploadedUrl = uploadResponse?.data?.imgUrl;
-        if (!uploadedUrl) {
-          throw new Error('Không nhận được URL ảnh sau khi upload.');
+      const finalImages = [];
+      for (const item of previewItems) {
+        if (item.file) {
+          const res = await fileApi.uploadFile(item.file);
+          const u = res?.data?.imgUrl;
+          if (u) finalImages.push(u);
+        } else if (item.src) {
+          finalImages.push(item.src);
         }
-        imageUrl = uploadedUrl;
       }
 
       const payload = {
         ...form,
-        imgUrl: imageUrl,
-        imageUrl,
+        images: finalImages,
+        imageUrl: finalImages[0] || form.imageUrl || '',
+        imgUrl: finalImages[0] || form.imageUrl || '',
         price: Number(form.price),
         oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
+        videoUrl: form.videoUrl || null,
       };
 
       const savedProduct = await productService.saveProduct(payload, isEdit ? product.id : null);
@@ -126,7 +185,6 @@ export function AdminProductModal({ product, onClose }) {
 
   const catOptions = CATEGORIES.map(c => ({ id:c.id, name:c.name }));
   const emojiOptions = ['💻','🎮','🎧','⌨️','📱','💾','🔋','🖥️','🖱️','🎬','🎵','📷'];
-  const previewSource = previewUrl || form.imageUrl;
 
   return (
     <div className="admin-product-modal modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
@@ -155,26 +213,48 @@ export function AdminProductModal({ product, onClose }) {
                 className="file-input-hidden"
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
               />
             </div>
             <small className="upload-note">Hoặc dán URL ảnh vào ô dưới đây nếu không muốn upload.</small>
-            <input
-              className="input"
-              type="url"
-              value={form.imageUrl}
-              onChange={e => setForm({...form,imageUrl:e.target.value})}
-              placeholder="https://example.com/image.jpg"
-              style={{ marginTop: '12px' }}
-            />
-            {fileToUpload && <small className="upload-note">Ảnh được chọn để preview. Upload sẽ thực hiện khi lưu.</small>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <input
+                className="input"
+                type="url"
+                value={newImageUrl}
+                onChange={e => setNewImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-secondary" onClick={() => {
+                if (!newImageUrl) return; setPreviewItems(prev => [...prev, createPreviewItem(newImageUrl)]); setNewImageUrl('');
+              }}>Thêm</button>
+            </div>
+            <small className="upload-note">Ảnh preview (dùng nút lên/xuống để sắp xếp thứ tự):</small>
+            <div className="image-thumbs" style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+              {previewItems.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className={`thumb-item ${draggedIndex === idx ? 'dragging' : ''} ${dragOverIndex === idx ? 'drag-over' : ''}`}
+                  draggable
+                  onDragStart={e => handleThumbDragStart(idx, e)}
+                  onDragOver={e => handleThumbDragOver(idx, e)}
+                  onDragLeave={() => handleThumbDragLeave(idx)}
+                  onDrop={e => handleThumbDrop(idx, e)}
+                  onDragEnd={handleThumbDragEnd}
+                >
+                  <img src={item.src} alt={`preview-${idx}`} className="thumb-image" />
+                  <button type="button" className="thumb-remove" onClick={() => setPreviewItems(prev => prev.filter((x) => x.id !== item.id))}>×</button>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <label className="form-label">Video (YouTube URL)</label>
+              <input className="input" type="url" value={form.videoUrl||''} onChange={e => setForm({...form,videoUrl:e.target.value})} placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
           </div>
         </div>
-        {previewSource && (
-          <div className="image-preview">
-            <img src={previewSource} alt={form.name || 'Ảnh sản phẩm'} />
-          </div>
-        )}
 
         <div className="form-row form-row-custom">
           <div className="form-group form-group-no-margin">

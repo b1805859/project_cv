@@ -19,4 +19,8 @@ export const authApi = {
   register: (userData) => {
     return httpClient.post('/auth/register', userData);
   }
+  ,
+  logout: () => {
+    return httpClient.post('/auth/logout');
+  }
 };

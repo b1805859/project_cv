@@ -36,6 +36,10 @@ export const authService = {
    * Clear local session token and user info
    */
   handleLogout() {
+    // notify server to clear refresh cookie (best-effort)
+    try {
+      authApi.logout().catch(() => {});
+    } catch (e) {}
     localStorage.removeItem('accessToken');
     localStorage.removeItem('currentUser');
   },
